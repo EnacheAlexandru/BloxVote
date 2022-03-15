@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
+
+:root {
+  --color1: #3fd2c7;
+  --color2: #99ddff;
+  --color3: #00458b;
+  --white: #ffffff;
+}
+
+.wrapper-txtfld {
+  display: flex;
+  align-items: center;
+}
+
+.custom-txtfld {
+  border-radius: 20px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  padding: 4px;
+  border-color: var(--color3);
+  margin-right: 0.5%;
+  width: 100%;
+}

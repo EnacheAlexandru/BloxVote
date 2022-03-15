@@ -1,10 +1,12 @@
-import CustomButton from "./components/CustomButton";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import DashboardVoter from "./pages/DashboardVoter";
 
 export default function App() {
   return (
-    <div>
-      <CustomButton>OPEN</CustomButton>
-      <CustomButton buttonStyle={"btn-color2"}>NOT STARTED</CustomButton>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<DashboardVoter />} />
+      </Routes>
+    </Router>
   );
 }
