@@ -1,11 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
-
-:root {
-  --color1: #3fd2c7;
-  --color2: #99ddff;
-  --color3: #00458b;
-  --white: #ffffff;
-}
+@import "../utils/global.css";
 
 .wrapper-txtfld {
   display: flex;

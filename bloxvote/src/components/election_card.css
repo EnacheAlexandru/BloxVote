@@ -1,0 +1,18 @@
+.election-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-flow: row wrap;
+  margin: 3% 5% 3% 5%;
+  padding: 1%;
+  background-color: rgba(153, 221, 255, 0.3);
+  border-radius: 20px;
+}
+
+.election-card > div {
+  flex-grow: 1;
+}
+
+.election-card-status {
+  text-align: end;
+}

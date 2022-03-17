@@ -1,11 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
-
-:root {
-  --color1: #3fd2c7;
-  --color2: #99ddff;
-  --color3: #00458b;
-  --white: #ffffff;
-}
+@import "../utils/global.css";
 
 .custom-btn {
   font-family: "Montserrat", sans-serif;
@@ -52,4 +46,46 @@
 .btn-color3:hover {
   color: var(--color3);
   border-color: var(--color3);
+}
+
+.btn-color4 {
+  background-color: var(--color4);
+}
+
+.btn-color4:hover {
+  color: var(--color4);
+  border-color: var(--color4);
+}
+
+.custom-btn-status {
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding-left: 3%;
+  padding-right: 3%;
+  padding-top: 0.25%;
+  padding-bottom: 0.25%;
+  color: var(--white);
+}
+
+.btn-status-color1 {
+  background-color: var(--color1);
+}
+
+.btn-status-color2 {
+  background-color: var(--color2);
+}
+
+.btn-status-color3 {
+  background-color: var(--color3);
+}
+
+.btn-status-color4 {
+  background-color: var(--color4);
+}
+
+.btn-size-large {
+  font-size: 20px;
 }

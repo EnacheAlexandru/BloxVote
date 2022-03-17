@@ -1,4 +1,4 @@
-export default function dateToString(date) {
+export function dateToString(date) {
   let d = new Date(date),
     month = "" + (d.getMonth() + 1),
     day = "" + d.getDate(),
@@ -8,4 +8,8 @@ export default function dateToString(date) {
   if (day.length < 2) day = "0" + day;
 
   return [day, month, year].join("/");
+}
+
+export function deepCopy(item) {
+  return JSON.parse(JSON.stringify(item));
 }
