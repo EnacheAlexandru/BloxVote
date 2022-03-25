@@ -7,6 +7,7 @@
   padding: 1%;
   background-color: rgba(153, 221, 255, 0.3);
   border-radius: 20px;
+  cursor: pointer;
 }
 
 .election-card > div {

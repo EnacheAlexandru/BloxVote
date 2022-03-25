@@ -7,6 +7,7 @@ import { Election, ElectionStatus, VoterStatus } from "../domain/Election";
 import "../utils/global.css";
 import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
+import { useNavigate } from "react-router-dom";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -126,6 +127,8 @@ export default function DashboardVoter() {
   const [account, setAccount] = useState(
     "0xbfc06bd91802ceccefdac434412a56be26e501d4"
   );
+
+  const navigateToElectionDetails = useNavigate();
 
   useEffect(() => {
     stateDispatch({
@@ -359,7 +362,12 @@ export default function DashboardVoter() {
 
       {noElectionsInfo}
 
-      <ElectionList elections={state.paginatedElections}></ElectionList>
+      <ElectionList
+        elections={state.paginatedElections}
+        onClick={(electionID) =>
+          navigateToElectionDetails(`/election/${electionID}`)
+        }
+      ></ElectionList>
 
       <div className="page-buttons">
         {backPageButton}

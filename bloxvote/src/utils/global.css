@@ -6,6 +6,7 @@
   --color3: #00458b;
   --color4: #fbd397;
   --white: #ffffff;
+  --red: #ff0000;
 }
 
 .default-text {
@@ -44,4 +45,12 @@
 
 .color4 {
   color: var(--color4);
+}
+
+.white {
+  color: var(--white);
+}
+
+.red {
+  color: var(--red);
 }

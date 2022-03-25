@@ -5,7 +5,7 @@ import { dateToString } from "../utils/utils";
 import CustomButtonStatus from "./CustomButtonStatus";
 import "./election_card.css";
 
-export default function ElectionCard({ election }) {
+export default function ElectionCard({ election, onClick }) {
   let electionStatusButton;
   if (election.electionStatus === ElectionStatus.OPEN) {
     electionStatusButton = (
@@ -69,7 +69,7 @@ export default function ElectionCard({ election }) {
   }
 
   return (
-    <div className="election-card">
+    <div className="election-card" onClick={() => onClick(election.id)}>
       <div>
         <div
           className="default-text size-large color3"
