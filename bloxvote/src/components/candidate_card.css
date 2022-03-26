@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
+@import "../utils/global.css";
+
+.candidate-card {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3%;
+  padding: 1%;
+  background-color: rgba(153, 221, 255, 0.3);
+  border-radius: 20px;
+}
+
+.candidate-card > div {
+  flex-grow: 1;
+}
+
+.tick-box {
+  background-color: var(--color2);
+  border-radius: 20px;
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 100px;
+  max-height: 100px;
+}
+
+.tick-box:hover {
+  background-image: url("../assets/checkmark.svg");
+  background-position: center;
+  background-size: contain;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.number-votes {
+  background-color: var(--color2);
+  border-radius: 20px;
+  min-width: 100px;
+  min-height: 75px;
+  max-width: 100px;
+  max-height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.number-votes-lead {
+  background-color: var(--color3);
+  border-radius: 20px;
+  min-width: 100px;
+  min-height: 75px;
+  max-width: 100px;
+  max-height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.name-desc {
+  width: 580px;
+  margin-left: 20px;
+}
+
+.percentage {
+  margin-left: 10px;
+  margin-right: 10px;
+  text-align: right;
+}
