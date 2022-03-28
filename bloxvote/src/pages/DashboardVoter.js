@@ -3,7 +3,8 @@ import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
 import CustomTextField from "../components/CustomTextField";
-import { Election, ElectionStatus, VoterStatus } from "../domain/Election";
+import { Election } from "../domain/Election";
+import { ElectionStatus, VoterStatus } from "../utils/utils";
 import "../utils/global.css";
 import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
@@ -17,7 +18,8 @@ const ACTIONS = {
   SET_FILTER_TITLE_VALUE: "SET_FILTER_TITLE_VALUE",
   SET_FILTER_DATE_VALUE: "SET_FILTER_DATE_VALUE",
   SET_NUMBER_PAGES: "SET_NUMBER_PAGES",
-  RESET_PAGINATION: "RESET_PAGINATION",
+  FIRST_PAGE: "FIRST_PAGE",
+  LAST_PAGE: "LAST_PAGE",
 };
 
 const itemsPerPage = 4;
@@ -101,12 +103,21 @@ export default function DashboardVoter() {
           numberPages: action.payload,
         };
 
-      case ACTIONS.RESET_PAGINATION:
+      case ACTIONS.FIRST_PAGE:
         return {
           ...state,
           positionStartElections: 0,
           positionEndElections: itemsPerPage,
           currentPage: 1,
+        };
+
+      case ACTIONS.LAST_PAGE:
+        return {
+          ...state,
+          positionStartElections:
+            state.numberPages * itemsPerPage - itemsPerPage,
+          positionEndElections: state.numberPages * itemsPerPage,
+          currentPage: state.numberPages,
         };
     }
   };
@@ -230,38 +241,68 @@ export default function DashboardVoter() {
   let backPageButton;
   if (state.currentPage > 1) {
     backPageButton = (
-      <div>
-        <CustomButton
-          buttonSize={"btn-size-normal"}
-          onClick={() => {
-            stateDispatch({ type: ACTIONS.PREVIOUS_PAGE });
-            stateDispatch({
-              type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
-            });
-          }}
-        >
-          {"<"}
-        </CustomButton>
-      </div>
+      <>
+        <div style={{ marginRight: "0.5%" }}>
+          <CustomButton
+            buttonSize={"btn-size-normal"}
+            onClick={() => {
+              stateDispatch({ type: ACTIONS.FIRST_PAGE });
+              stateDispatch({
+                type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
+              });
+            }}
+          >
+            {"<<"}
+          </CustomButton>
+        </div>
+        <div>
+          <CustomButton
+            buttonSize={"btn-size-normal"}
+            onClick={() => {
+              stateDispatch({ type: ACTIONS.PREVIOUS_PAGE });
+              stateDispatch({
+                type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
+              });
+            }}
+          >
+            {"<"}
+          </CustomButton>
+        </div>
+      </>
     );
   }
 
   let forwardPageButton;
   if (state.currentPage < state.numberPages) {
     forwardPageButton = (
-      <div>
-        <CustomButton
-          buttonSize={"btn-size-normal"}
-          onClick={() => {
-            stateDispatch({ type: ACTIONS.NEXT_PAGE });
-            stateDispatch({
-              type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
-            });
-          }}
-        >
-          {">"}
-        </CustomButton>
-      </div>
+      <>
+        <div>
+          <CustomButton
+            buttonSize={"btn-size-normal"}
+            onClick={() => {
+              stateDispatch({ type: ACTIONS.NEXT_PAGE });
+              stateDispatch({
+                type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
+              });
+            }}
+          >
+            {">"}
+          </CustomButton>
+        </div>
+        <div style={{ marginLeft: "0.5%" }}>
+          <CustomButton
+            buttonSize={"btn-size-normal"}
+            onClick={() => {
+              stateDispatch({ type: ACTIONS.LAST_PAGE });
+              stateDispatch({
+                type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
+              });
+            }}
+          >
+            {">>"}
+          </CustomButton>
+        </div>
+      </>
     );
   }
 
@@ -349,7 +390,7 @@ export default function DashboardVoter() {
           buttonSize={"btn-size-large"}
           onClick={() => {
             stateDispatch({
-              type: ACTIONS.RESET_PAGINATION,
+              type: ACTIONS.FIRST_PAGE,
             });
             stateDispatch({
               type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,

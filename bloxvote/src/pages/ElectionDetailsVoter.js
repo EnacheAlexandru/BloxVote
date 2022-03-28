@@ -2,13 +2,9 @@ import React, { useReducer, useEffect } from "react";
 import "./election_details_voter.css";
 import "../utils/global.css";
 import logo from "../assets/logo.svg";
-import {
-  ElectionDetails,
-  ElectionStatus,
-  VoterStatus,
-} from "../domain/ElectionDetails";
+import { ElectionDetails } from "../domain/ElectionDetails";
 import { Candidate } from "../domain/Candidate";
-import { dateToString } from "../utils/utils";
+import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
 import { Voter } from "../domain/Voter";
 import CandidateList from "../components/CandidateList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
@@ -51,13 +47,15 @@ export default function ElectionDetailsVoter() {
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+
     const fetchedElection = new ElectionDetails(
       2,
       "Vote for your mayor",
       "The next 4 years will be important for our city! Your vote is very important for our future!",
       new Date(2022, 2, 25),
       new Date(2022, 2, 27),
-      ElectionStatus.OPEN,
+      ElectionStatus.ENDED,
       { 1: 17, 2: 24, 3: 58 }
     );
 
@@ -104,19 +102,38 @@ export default function ElectionDetailsVoter() {
   }
 
   let notRegisteredLabel;
-  if (state.voterStatus === VoterStatus.NOT_REGISTERED) {
+  if (
+    state.voterStatus === VoterStatus.NOT_REGISTERED &&
+    state.election.electionStatus !== ElectionStatus.ENDED
+  ) {
     notRegisteredLabel = (
       <div
         className="default-text size-larger red"
-        style={{ textAlign: "center", margin: "2% 1% 2% 1%" }}
+        style={{ textAlign: "center" }}
       >
         You are not registered for this election!
+      </div>
+    );
+  } else if (
+    state.voterStatus === VoterStatus.NOT_REGISTERED &&
+    state.election.electionStatus === ElectionStatus.ENDED
+  ) {
+    notRegisteredLabel = (
+      <div
+        className="default-text size-larger red"
+        style={{ textAlign: "center" }}
+      >
+        You were not registered for this election!
       </div>
     );
   }
 
   let notVotedLabel;
-  if (state.voterStatus === VoterStatus.NOT_VOTED) {
+  if (
+    state.voterStatus === VoterStatus.NOT_VOTED &&
+    state.election.electionStatus !== ElectionStatus.ENDED &&
+    state.election.electionStatus !== ElectionStatus.NOT_STARTED
+  ) {
     notVotedLabel = (
       <>
         <div
@@ -134,14 +151,30 @@ export default function ElectionDetailsVoter() {
         </div>
       </>
     );
+  } else if (
+    state.voterStatus === VoterStatus.NOT_VOTED &&
+    state.election.electionStatus === ElectionStatus.ENDED
+  ) {
+    notVotedLabel = (
+      <div
+        className="default-text size-larger color3"
+        style={{ textAlign: "center" }}
+      >
+        You did not vote in this election!
+      </div>
+    );
   }
 
   let alreadyVotedLabel;
-  if (state.voterStatus === VoterStatus.VOTED) {
+  if (
+    state.voterStatus === VoterStatus.VOTED &&
+    state.election.electionStatus !== ElectionStatus.ENDED &&
+    state.election.electionStatus !== ElectionStatus.NOT_STARTED
+  ) {
     alreadyVotedLabel = (
       <div
         className="default-text size-larger color1"
-        style={{ textAlign: "center", margin: "2% 1% 2% 1%" }}
+        style={{ textAlign: "center" }}
       >
         You have already voted!
       </div>
@@ -209,7 +242,7 @@ export default function ElectionDetailsVoter() {
 
       <div
         className="default-text size-small color3"
-        style={{ textAlign: "center", margin: "1% 20% 1% 20%" }}
+        style={{ textAlign: "center", margin: "1% 20% 4% 20%" }}
       >
         {state.election.description}
       </div>
@@ -221,14 +254,17 @@ export default function ElectionDetailsVoter() {
       <div className="candidates-wrapper">
         <div
           className="default-text size-large color3"
-          style={{ marginBottom: "2%" }}
+          style={{ marginBottom: "2%", marginTop: "5%" }}
         >
           Total votes: {state.totalVotes}
         </div>
-
         <CandidateList
-          election={state.election}
           candidates={state.candidates}
+          candidatesNumberVotes={state.election.candidates}
+          electionStatus={state.election.electionStatus}
+          voterStatus={state.voterStatus}
+          voteFor={state.voter.votes[state.election.id]}
+          totalVotes={state.totalVotes}
           onClick={() => console.log("lol")}
         ></CandidateList>
       </div>

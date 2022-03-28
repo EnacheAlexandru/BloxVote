@@ -23,6 +23,36 @@
   max-height: 100px;
 }
 
+.tick-box-no-hover {
+  background-color: var(--color2);
+  border-radius: 20px;
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 100px;
+  max-height: 100px;
+}
+
+.tick-box-closed-no-hover {
+  background-color: var(--color4);
+  border-radius: 20px;
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 100px;
+  max-height: 100px;
+}
+
+.tick-box-ticked {
+  background-color: var(--color2);
+  border-radius: 20px;
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 100px;
+  max-height: 100px;
+  background-image: url("../assets/checkmark.svg");
+  background-position: center;
+  background-size: contain;
+}
+
 .tick-box:hover {
   background-image: url("../assets/checkmark.svg");
   background-position: center;

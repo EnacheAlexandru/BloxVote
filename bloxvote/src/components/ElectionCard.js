@@ -1,7 +1,6 @@
 import React from "react";
-import { ElectionStatus, VoterStatus } from "../domain/Election";
 import "../utils/global.css";
-import { dateToString } from "../utils/utils";
+import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
 import CustomButtonStatus from "./CustomButtonStatus";
 import "./election_card.css";
 

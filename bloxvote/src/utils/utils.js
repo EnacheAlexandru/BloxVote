@@ -10,6 +10,14 @@ export function dateToString(date) {
   return [day, month, year].join("/");
 }
 
-export function deepCopy(item) {
-  return JSON.parse(JSON.stringify(item));
-}
+export const ElectionStatus = {
+  NOT_STARTED: "NOT_STARTED",
+  OPEN: "OPEN",
+  ENDED: "ENDED",
+};
+
+export const VoterStatus = {
+  NOT_REGISTERED: "NOT_REGISTERED",
+  NOT_VOTED: "NOT_VOTED",
+  VOTED: "VOTED",
+};
