@@ -11,8 +11,9 @@
   font-family: "Montserrat", sans-serif;
   font-weight: bold;
   letter-spacing: 0.05em;
-  padding: 4px;
   border-color: var(--color3);
   margin-right: 0.5%;
+  box-sizing: border-box;
   width: 100%;
+  margin: 0;
 }

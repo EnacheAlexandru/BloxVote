@@ -28,7 +28,9 @@ export default function CandidateCard({
       tickBox = <div className="tick-box-no-hover"></div>;
     }
   } else if (voterStatus === VoterStatus.NOT_VOTED) {
-    tickBox = <div className="tick-box" onClick={() => onClick()}></div>;
+    tickBox = (
+      <div className="tick-box" onClick={() => onClick(candidate.id)}></div>
+    );
   }
 
   return (

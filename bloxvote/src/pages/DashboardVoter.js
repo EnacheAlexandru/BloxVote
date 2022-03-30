@@ -373,7 +373,6 @@ export default function DashboardVoter() {
             Filter by date
           </div>
           <CustomTextField
-            width="100%"
             icon="date"
             onChange={(value) =>
               stateDispatch({

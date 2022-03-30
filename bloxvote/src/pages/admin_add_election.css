@@ -1,0 +1,47 @@
+.custom-text-field {
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  border: 2px solid var(--color3);
+  border-radius: 20px;
+  font-size: 18px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-textarea {
+  font-family: "Montserrat", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  border: 2px solid var(--color3);
+  border-radius: 20px;
+  font-size: 18px;
+  width: 100%;
+  resize: none;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.date-form {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.date-form > div {
+  flex-grow: 1;
+}
+
+.date-form-component {
+  display: flex;
+  align-items: center;
+}
+
+.form-wrapper {
+  margin: 2% 5% 5% 5%;
+}
+
+input[type="text"] {
+  padding: 10px;
+}

@@ -1,4 +1,4 @@
-* {
+body {
   margin: 0.5% 0 0 0;
 }
 
@@ -9,6 +9,7 @@
   justify-content: space-between;
   padding-left: 1%;
   padding-right: 1%;
+  margin-bottom: 3%;
 }
 
 .candidates-wrapper {
