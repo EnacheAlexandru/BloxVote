@@ -19,6 +19,7 @@
   margin-left: 5%;
   margin-bottom: 2%;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .logo-size {

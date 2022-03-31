@@ -218,7 +218,7 @@ export default function ElectionDetailsVoter() {
           <img className="logo-size" src={logo} alt="logo"></img>
         </div>
         <div className="default-text size-smaller color3">
-          <div>Logged in as:</div>
+          <div style={{ textAlign: "right" }}>Logged in as:</div>
           <div>{state.voter.address}</div>
         </div>
       </div>

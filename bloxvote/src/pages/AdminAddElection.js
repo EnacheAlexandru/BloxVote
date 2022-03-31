@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import "./admin_add_election.css";
 import "../utils/global.css";
 import "../utils/footer.css";
@@ -12,19 +12,29 @@ import { Candidate } from "../domain/Candidate";
 import AddCandidateList from "../components/AddCandidateList";
 
 const ACTIONS = {
-  SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
   ACTIONS_INIT: "ACTIONS_INIT",
+  ADD_CANDIDATE: "ADD_CANDIDATE",
 };
 
-const candidatesToBeAdded = [
-  new Candidate(1, "John Manner", "I want to make lots of parks!"),
-  new Candidate(
-    2,
-    "Umbert Gothium",
-    "I want to make a new hospital and a new mall for my lovely citizens!aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaa aaaaaaaaaaaaaaa aaaaaaaaaaa aaaaaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa"
-  ),
-  new Candidate(3, "Cassandra Biggiy", "I want to build an airport!"),
-];
+const today = new Date();
+
+let tomorrow = new Date();
+tomorrow.setDate(today.getDate() + 1);
+
+let theDayAfterTomorrow = new Date();
+theDayAfterTomorrow.setDate(today.getDate() + 2);
+
+let currentCandidateID = 11;
+
+// const candidatesToBeAdded = [
+//   new Candidate(1, "John Manner", "I want to make lots of parks!"),
+//   new Candidate(
+//     2,
+//     "Umbert Gothium",
+//     "I want to make a new hospital and a new mall for my lovely citizens!aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaa aaaaaaaaaaaaaaa aaaaaaaaaaa aaaaaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa"
+//   ),
+//   new Candidate(3, "Cassandra Biggiy", "I want to build an airport!"),
+// ];
 
 export default function AdminAddElection() {
   const stateReducer = (state, action) => {
@@ -34,14 +44,29 @@ export default function AdminAddElection() {
           ...state,
           voter: action.payload.fetchedVoter,
         };
+      case ACTIONS.ADD_CANDIDATE: {
+        return {
+          ...state,
+          candidatesToBeAdded: [...state.candidatesToBeAdded, action.payload],
+        };
+      }
     }
   };
 
   const initialState = {
     voter: null,
-    selectedStartDate: "",
-    selectedEndDate: "",
+    candidatesToBeAdded: [],
   };
+
+  const [titleElection, setTitleElection] = useState("");
+  const [descriptionElection, setDescriptionElection] = useState("");
+  const [nameCandidate, setNameCandidate] = useState("");
+  const [descriptionCandidate, setDescriptionCandidate] = useState("");
+
+  const [startDateElection, setStartDateElection] = useState(null);
+  const [endDateElection, setEndDateElection] = useState(null);
+  const [endDateMinElection, setEndDateMinElection] =
+    useState(theDayAfterTomorrow);
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
@@ -64,9 +89,68 @@ export default function AdminAddElection() {
     });
   }, []);
 
+  useEffect(() => {
+    if (startDateElection) {
+      let tomorrowAfterStartDateElection = new Date(startDateElection);
+      tomorrowAfterStartDateElection.setDate(
+        tomorrowAfterStartDateElection.getDate() + 1
+      );
+      setEndDateMinElection(tomorrowAfterStartDateElection);
+      if (endDateElection) {
+        if (startDateElection >= endDateElection) {
+          setEndDateElection(null);
+        }
+      }
+    }
+  }, [startDateElection]);
+
+  let titleElectionError;
+  if (!titleElection) {
+    titleElectionError = (
+      <div className="default-text size-smaller red">Invalid field</div>
+    );
+  }
+
+  let descriptionElectionError;
+  if (!descriptionElection) {
+    descriptionElectionError = (
+      <div className="default-text size-smaller red">Invalid field</div>
+    );
+  }
+
+  let startDateElectionError;
+  if (!startDateElection) {
+    startDateElectionError = (
+      <span className="default-text size-smaller red">Invalid field</span>
+    );
+  }
+
+  let endDateElectionError;
+  if (!endDateElection) {
+    endDateElectionError = (
+      <span className="default-text size-smaller red">Invalid field</span>
+    );
+  }
+
+  let nameCandidateError;
+  if (!nameCandidate) {
+    nameCandidateError = (
+      <div className="default-text size-smaller red">Invalid field</div>
+    );
+  }
+
+  let descriptionCandidateError;
+  if (!descriptionCandidate) {
+    descriptionCandidateError = (
+      <div className="default-text size-smaller red">Invalid field</div>
+    );
+  }
+
   if (!state.voter) {
     return <div>Loading...</div>;
   }
+
+  console.log(startDateElection);
 
   return (
     <div>
@@ -75,7 +159,7 @@ export default function AdminAddElection() {
           <img className="logo-size" src={logo} alt="logo"></img>
         </div>
         <div className="default-text size-smaller color3">
-          <div>Logged in as:</div>
+          <div style={{ textAlign: "right" }}>Logged in as:</div>
           <div>{state.voter.address}</div>
         </div>
       </div>
@@ -94,9 +178,12 @@ export default function AdminAddElection() {
             type="text"
             className="custom-text-field"
             maxLength="75"
-            //onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => {
+              setTitleElection(event.target.value);
+            }}
           ></input>
         </div>
+        {titleElectionError}
 
         <div style={{ marginBottom: "40px" }}></div>
 
@@ -106,9 +193,12 @@ export default function AdminAddElection() {
             className="custom-textarea"
             maxLength="300"
             rows="4"
-            //onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => {
+              setDescriptionElection(event.target.value);
+            }}
           ></textarea>
         </div>
+        {descriptionElectionError}
 
         <div style={{ marginBottom: "40px" }}></div>
 
@@ -119,20 +209,19 @@ export default function AdminAddElection() {
               <DatePicker
                 className="custom-text-field"
                 onChange={(date) => {
-                  //onChange(date);
-                  //setSelectedDate(date);
+                  setStartDateElection(date);
                 }}
-                selected={state.selectedStartDate}
+                selected={startDateElection}
+                minDate={tomorrow}
                 dateFormat="dd/MM/yyyy"
               ></DatePicker>
             </div>
-            <div>
-              <MdDateRange
-                size={30}
-                style={{ marginRight: "1%" }}
-              ></MdDateRange>
+            <div style={{ marginRight: "1%" }}>
+              <MdDateRange size={30}></MdDateRange>
             </div>
+            {startDateElectionError}
           </div>
+
           <div
             className="date-form-component"
             style={{ justifyContent: "end" }}
@@ -142,19 +231,18 @@ export default function AdminAddElection() {
               <DatePicker
                 className="custom-text-field"
                 onChange={(date) => {
-                  //onChange(date);
-                  //setSelectedDate(date);
+                  setEndDateElection(date);
                 }}
-                selected={state.selectedEndDate}
+                selected={endDateElection}
+                minDate={endDateMinElection}
                 dateFormat="dd/MM/yyyy"
               ></DatePicker>
             </div>
-            <div>
-              <MdDateRange
-                size={30}
-                style={{ marginRight: "1%" }}
-              ></MdDateRange>
+
+            <div style={{ marginRight: "1%" }}>
+              <MdDateRange size={30}></MdDateRange>
             </div>
+            {endDateElectionError}
           </div>
         </div>
 
@@ -175,9 +263,12 @@ export default function AdminAddElection() {
             type="text"
             className="custom-text-field"
             maxLength="75"
-            //onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => {
+              setNameCandidate(event.target.value);
+            }}
           ></input>
         </div>
+        {nameCandidateError}
 
         <div style={{ marginBottom: "40px" }}></div>
 
@@ -187,9 +278,12 @@ export default function AdminAddElection() {
             className="custom-textarea"
             maxLength="300"
             rows="4"
-            //onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => {
+              setDescriptionCandidate(event.target.value);
+            }}
           ></textarea>
         </div>
+        {descriptionCandidateError}
 
         <div style={{ marginBottom: "40px" }}></div>
 
@@ -197,10 +291,17 @@ export default function AdminAddElection() {
           <CustomButton
             buttonSize={"btn-size-large"}
             onClick={() => {
-              // stateDispatch({ type: ACTIONS.FIRST_PAGE });
-              // stateDispatch({
-              //   type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
-              // });
+              if (!nameCandidateError && !descriptionCandidateError) {
+                stateDispatch({
+                  type: ACTIONS.ADD_CANDIDATE,
+                  payload: new Candidate(
+                    currentCandidateID,
+                    nameCandidate,
+                    descriptionCandidate
+                  ),
+                });
+                currentCandidateID += 1;
+              }
             }}
           >
             ADD CANDIDATE
@@ -217,8 +318,8 @@ export default function AdminAddElection() {
 
         <div>
           <AddCandidateList
-            candidates={candidatesToBeAdded}
-            onClick={() => console.log("lol")}
+            candidates={state.candidatesToBeAdded}
+            onClick={(candidateID) => console.log(candidateID)}
           ></AddCandidateList>
         </div>
 
