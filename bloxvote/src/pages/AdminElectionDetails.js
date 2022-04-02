@@ -1,20 +1,21 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useState } from "react";
 import "./election_details_voter.css";
 import "../utils/global.css";
 import logo from "../assets/logo.svg";
 import { ElectionDetails } from "../domain/ElectionDetails";
 import { Candidate } from "../domain/Candidate";
-import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
+import { dateToString, ElectionStatus } from "../utils/utils";
 import { Voter } from "../domain/Voter";
 import CandidateList from "../components/CandidateList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
+import CustomButton from "../components/CustomButton";
 
 const ACTIONS = {
   SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
   ACTIONS_INIT: "ACTIONS_INIT",
 };
 
-export default function ElectionDetailsVoter() {
+export default function AdminElectionDetails() {
   const stateReducer = (state, action) => {
     switch (action.type) {
       case ACTIONS.INIT:
@@ -26,7 +27,6 @@ export default function ElectionDetailsVoter() {
           totalVotes: Object.values(
             action.payload.fetchedElection.candidates
           ).reduce((prev, curr) => parseInt(prev) + parseInt(curr), 0),
-          voterStatus: action.payload.determineVoterStatus,
         };
       case ACTIONS.SET_TOTAL_VOTES:
         return {
@@ -41,10 +41,11 @@ export default function ElectionDetailsVoter() {
     candidates: [],
     voter: null,
     totalVotes: 0,
-    voterStatus: null,
   };
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
+
+  const [voterAddressToRegister, setVoterAddressToRegister] = useState("");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -55,7 +56,7 @@ export default function ElectionDetailsVoter() {
       "The next 4 years will be important for our city! Your vote is very important for our future!",
       new Date(2022, 2, 25),
       new Date(2022, 2, 27),
-      ElectionStatus.OPEN,
+      ElectionStatus.NOT_STARTED,
       { 1: 17, 2: 24, 3: 58 }
     );
 
@@ -74,18 +75,8 @@ export default function ElectionDetailsVoter() {
       {
         3: null,
         4: 1,
-        2: null,
       }
     );
-
-    let determineVoterStatus;
-    if (!(fetchedElection.id in fetchedVoter.votes)) {
-      determineVoterStatus = VoterStatus.NOT_REGISTERED;
-    } else if (fetchedVoter.votes[fetchedElection.id] === null) {
-      determineVoterStatus = VoterStatus.NOT_VOTED;
-    } else {
-      determineVoterStatus = VoterStatus.VOTED;
-    }
 
     stateDispatch({
       type: ACTIONS.INIT,
@@ -93,93 +84,12 @@ export default function ElectionDetailsVoter() {
         fetchedElection: fetchedElection,
         fetchedCandidates: fetchedCandidates,
         fetchedVoter: fetchedVoter,
-        determineVoterStatus: determineVoterStatus,
       },
     });
   }, []);
 
-  if (!state.election || !state.voter || !state.voterStatus) {
+  if (!state.election || !state.voter) {
     return <div>Loading...</div>;
-  }
-
-  let notRegisteredLabel;
-  if (
-    state.voterStatus === VoterStatus.NOT_REGISTERED &&
-    state.election.electionStatus !== ElectionStatus.ENDED
-  ) {
-    notRegisteredLabel = (
-      <div
-        className="default-text size-larger red"
-        style={{ textAlign: "center" }}
-      >
-        You are not registered for this election!
-      </div>
-    );
-  } else if (
-    state.voterStatus === VoterStatus.NOT_REGISTERED &&
-    state.election.electionStatus === ElectionStatus.ENDED
-  ) {
-    notRegisteredLabel = (
-      <div
-        className="default-text size-larger red"
-        style={{ textAlign: "center" }}
-      >
-        You were not registered for this election!
-      </div>
-    );
-  }
-
-  let notVotedLabel;
-  if (
-    state.voterStatus === VoterStatus.NOT_VOTED &&
-    state.election.electionStatus !== ElectionStatus.ENDED &&
-    state.election.electionStatus !== ElectionStatus.NOT_STARTED
-  ) {
-    notVotedLabel = (
-      <>
-        <div
-          className="default-text size-larger color3"
-          style={{ textAlign: "center" }}
-        >
-          Choose the candidate that you wish to vote for!
-        </div>
-
-        <div
-          className="default-text size-large color3"
-          style={{ textAlign: "center" }}
-        >
-          But choose wisely, you can only vote once!
-        </div>
-      </>
-    );
-  } else if (
-    state.voterStatus === VoterStatus.NOT_VOTED &&
-    state.election.electionStatus === ElectionStatus.ENDED
-  ) {
-    notVotedLabel = (
-      <div
-        className="default-text size-larger color3"
-        style={{ textAlign: "center" }}
-      >
-        You did not vote in this election!
-      </div>
-    );
-  }
-
-  let alreadyVotedLabel;
-  if (
-    state.voterStatus === VoterStatus.VOTED &&
-    state.election.electionStatus !== ElectionStatus.ENDED &&
-    state.election.electionStatus !== ElectionStatus.NOT_STARTED
-  ) {
-    alreadyVotedLabel = (
-      <div
-        className="default-text size-larger color1"
-        style={{ textAlign: "center" }}
-      >
-        You have already voted!
-      </div>
-    );
   }
 
   let electionStatusButton;
@@ -212,15 +122,77 @@ export default function ElectionDetailsVoter() {
     );
   }
 
+  let changePhaseButton;
+  if (state.election.electionStatus !== ElectionStatus.ENDED) {
+    changePhaseButton = (
+      <CustomButton
+        buttonSize={"btn-size-large"}
+        onClick={() => {
+          //navigate("/admin/election/add");
+        }}
+      >
+        CHANGE PHASE
+      </CustomButton>
+    );
+  }
+
+  let voterAddressToRegisterError;
+  if (!/^0x[0-9A-Fa-f]{40}$/.test(voterAddressToRegister)) {
+    voterAddressToRegisterError = (
+      <div className="default-text size-smaller red">Invalid format</div>
+    );
+  }
+
   return (
     <div className="all-page-wrapper">
       <div className="header">
         <div>
           <img className="logo-size" src={logo} alt="logo"></img>
         </div>
+
+        {changePhaseButton}
+
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
           <div>{state.voter.address}</div>
+        </div>
+      </div>
+
+      <div className="register-voter">
+        <div className="default-text size-larger color3">Register voter</div>
+        <div
+          className="default-text size-small color3"
+          style={{ marginTop: "1%", marginBottom: "1%" }}
+        >
+          Enter voter's address{" "}
+          <span className="default-text size-smaller color3">
+            <i>(0x followed by 40 hexadecimal characters)</i>
+          </span>
+        </div>
+        <div>
+          <input
+            type="text"
+            className="custom-text-field"
+            maxLength="42"
+            onChange={(event) => {
+              setVoterAddressToRegister(event.target.value);
+            }}
+          ></input>
+        </div>
+
+        {voterAddressToRegisterError}
+
+        <div style={{ marginTop: "1%" }}>
+          <CustomButton
+            buttonSize={"btn-size-large"}
+            onClick={() => {
+              if (!voterAddressToRegisterError) {
+                console.log("register voter");
+              }
+            }}
+          >
+            REGISTER
+          </CustomButton>
         </div>
       </div>
 
@@ -248,14 +220,10 @@ export default function ElectionDetailsVoter() {
         {state.election.description}
       </div>
 
-      {notRegisteredLabel}
-      {alreadyVotedLabel}
-      {notVotedLabel}
-
       <div className="candidates-wrapper">
         <div
           className="default-text size-large color3"
-          style={{ marginBottom: "2%", marginTop: "2%" }}
+          style={{ marginBottom: "2%" }}
         >
           Total votes: {state.totalVotes}
         </div>
@@ -270,18 +238,20 @@ export default function ElectionDetailsVoter() {
         ></CandidateList>
       </div>
 
-      <div className="custom-shape-divider-bottom-1648118824">
-        <svg
-          data-name="Layer 1"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M892.25 114.72L0 0 0 120 1200 120 1200 0 892.25 114.72z"
-            className="shape-fill"
-          ></path>
-        </svg>
+      <div className="footer">
+        <div className="custom-shape-divider-bottom-1648118824">
+          <svg
+            data-name="Layer 1"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M892.25 114.72L0 0 0 120 1200 120 1200 0 892.25 114.72z"
+              className="shape-fill"
+            ></path>
+          </svg>
+        </div>
       </div>
     </div>
   );

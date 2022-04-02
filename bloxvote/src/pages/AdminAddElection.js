@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer, useState } from "react";
 import "./admin_add_election.css";
+import "./admin_election_details.css";
 import "../utils/global.css";
 import "../utils/footer.css";
 import logo from "../assets/logo.svg";
@@ -14,6 +15,7 @@ import AddCandidateList from "../components/AddCandidateList";
 const ACTIONS = {
   ACTIONS_INIT: "ACTIONS_INIT",
   ADD_CANDIDATE: "ADD_CANDIDATE",
+  DELETE_CANDIDATE: "DELETE_CANDIDATE",
 };
 
 const today = new Date();
@@ -48,6 +50,14 @@ export default function AdminAddElection() {
         return {
           ...state,
           candidatesToBeAdded: [...state.candidatesToBeAdded, action.payload],
+        };
+      }
+      case ACTIONS.DELETE_CANDIDATE: {
+        return {
+          ...state,
+          candidatesToBeAdded: state.candidatesToBeAdded.filter(
+            (candidate) => candidate.id !== action.payload
+          ),
         };
       }
     }
@@ -146,14 +156,49 @@ export default function AdminAddElection() {
     );
   }
 
+  let lessThanTwoCandidatesError;
+  if (state.candidatesToBeAdded.length < 2) {
+    lessThanTwoCandidatesError = (
+      <div className="default-text size-smaller red">
+        At least 2 candidates must be added
+      </div>
+    );
+  }
+
+  let addCandidateButton;
+  if (state.candidatesToBeAdded.length < 10) {
+    addCandidateButton = (
+      <div style={{ textAlign: "center" }}>
+        <CustomButton
+          buttonSize={"btn-size-large"}
+          onClick={() => {
+            if (!nameCandidateError && !descriptionCandidateError) {
+              stateDispatch({
+                type: ACTIONS.ADD_CANDIDATE,
+                payload: new Candidate(
+                  currentCandidateID,
+                  nameCandidate,
+                  descriptionCandidate
+                ),
+              });
+              currentCandidateID += 1;
+              setNameCandidate("");
+              setDescriptionCandidate("");
+            }
+          }}
+        >
+          ADD CANDIDATE
+        </CustomButton>
+      </div>
+    );
+  }
+
   if (!state.voter) {
     return <div>Loading...</div>;
   }
 
-  console.log(startDateElection);
-
   return (
-    <div>
+    <div className="all-page-wrapper">
       <div className="header">
         <div>
           <img className="logo-size" src={logo} alt="logo"></img>
@@ -260,8 +305,9 @@ export default function AdminAddElection() {
         <div className="default-text size-large color3">Name:</div>
         <div>
           <input
-            type="text"
             className="custom-text-field"
+            type="text"
+            value={nameCandidate}
             maxLength="75"
             onChange={(event) => {
               setNameCandidate(event.target.value);
@@ -276,6 +322,7 @@ export default function AdminAddElection() {
         <div>
           <textarea
             className="custom-textarea"
+            value={descriptionCandidate}
             maxLength="300"
             rows="4"
             onChange={(event) => {
@@ -287,26 +334,7 @@ export default function AdminAddElection() {
 
         <div style={{ marginBottom: "40px" }}></div>
 
-        <div style={{ textAlign: "center" }}>
-          <CustomButton
-            buttonSize={"btn-size-large"}
-            onClick={() => {
-              if (!nameCandidateError && !descriptionCandidateError) {
-                stateDispatch({
-                  type: ACTIONS.ADD_CANDIDATE,
-                  payload: new Candidate(
-                    currentCandidateID,
-                    nameCandidate,
-                    descriptionCandidate
-                  ),
-                });
-                currentCandidateID += 1;
-              }
-            }}
-          >
-            ADD CANDIDATE
-          </CustomButton>
-        </div>
+        {addCandidateButton}
 
         <div style={{ marginBottom: "40px" }}></div>
 
@@ -314,12 +342,19 @@ export default function AdminAddElection() {
           Candidates to be added:
         </div>
 
+        {lessThanTwoCandidatesError}
+
         <div style={{ marginBottom: "40px" }}></div>
 
-        <div>
+        <div className="candidate-list">
           <AddCandidateList
             candidates={state.candidatesToBeAdded}
-            onClick={(candidateID) => console.log(candidateID)}
+            onClick={(candidateID) =>
+              stateDispatch({
+                type: ACTIONS.DELETE_CANDIDATE,
+                payload: candidateID,
+              })
+            }
           ></AddCandidateList>
         </div>
 
@@ -329,10 +364,16 @@ export default function AdminAddElection() {
           <CustomButton
             buttonSize={"btn-size-large"}
             onClick={() => {
-              // stateDispatch({ type: ACTIONS.FIRST_PAGE });
-              // stateDispatch({
-              //   type: ACTIONS.UPDATE_PAGINATED_ELECTIONS,
-              // });
+              if (
+                !titleElectionError &&
+                !descriptionElectionError &&
+                !startDateElectionError &&
+                !endDateElectionError &&
+                !lessThanTwoCandidatesError
+              ) {
+                console.log("add election");
+                window.location.reload();
+              }
             }}
           >
             ADD ELECTION

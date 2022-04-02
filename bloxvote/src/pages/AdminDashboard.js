@@ -9,6 +9,7 @@ import "../utils/global.css";
 import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
+import ElectionListOnlyElectionStatus from "../components/ElectionListOnlyElectionStatus";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -24,7 +25,7 @@ const ACTIONS = {
 
 const itemsPerPage = 4;
 
-export default function DashboardVoter() {
+export default function AdminDashboard() {
   const computeNumberPages = (list) => {
     let numberPages;
     if (list.length % itemsPerPage !== 0) {
@@ -139,7 +140,7 @@ export default function DashboardVoter() {
     "0xbfc06bd91802ceccefdac434412a56be26e501d4"
   );
 
-  const navigateToElectionDetails = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     stateDispatch({
@@ -324,25 +325,17 @@ export default function DashboardVoter() {
         <div>
           <img className="logo-size" src={logo} alt="logo"></img>
         </div>
+        <CustomButton
+          buttonSize={"btn-size-large"}
+          onClick={() => {
+            navigate("/admin/election/add");
+          }}
+        >
+          ADD ELECTION
+        </CustomButton>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
           <div>{account}</div>
-        </div>
-      </div>
-
-      <div className="bg-title">
-        <div
-          className="default-text size-larger color3"
-          style={{ textAlign: "center" }}
-        >
-          BloxVote: A decentralized voting system
-        </div>
-
-        <div
-          className="default-text size-larger color3"
-          style={{ textAlign: "center" }}
-        >
-          Choose an election and start voting!
         </div>
       </div>
 
@@ -402,12 +395,10 @@ export default function DashboardVoter() {
 
       {noElectionsInfo}
 
-      <ElectionList
+      <ElectionListOnlyElectionStatus
         elections={state.paginatedElections}
-        onClick={(electionID) =>
-          navigateToElectionDetails(`/election/${electionID}`)
-        }
-      ></ElectionList>
+        onClick={(electionID) => navigate(`/admin/election/${electionID}`)}
+      ></ElectionListOnlyElectionStatus>
 
       <div className="page-buttons">
         {backPageButton}
