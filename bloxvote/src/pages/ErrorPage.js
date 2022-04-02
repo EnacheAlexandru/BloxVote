@@ -1,23 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Voter } from "../domain/Voter";
+import React, { useState, useEffect, useContext } from "react";
 import logo from "../assets/logo.svg";
+import { UserContext } from "../context/UserContext";
 
 export default function ErrorPage() {
-  const [voter, setVoter] = useState(null);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-
-    const fetchedVoter = new Voter(
-      "0xbfc06bd91802ceccefdac434412a56be26e501d4",
-      {
-        3: null,
-        4: 1,
-      }
-    );
-
-    setVoter(fetchedVoter);
-  }, []);
+  const { user, setUser } = useContext(UserContext);
 
   return (
     <div className="all-page-wrapper">
@@ -25,10 +11,10 @@ export default function ErrorPage() {
         <div>
           <img className="logo-size" src={logo} alt="logo"></img>
         </div>
-        {voter ? (
+        {user ? (
           <div className="default-text size-smaller color3">
             <div style={{ textAlign: "right" }}>Logged in as:</div>
-            <div>{voter.address}</div>
+            <div>{user.address}</div>
           </div>
         ) : null}
       </div>

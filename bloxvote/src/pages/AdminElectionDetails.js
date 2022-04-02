@@ -1,14 +1,15 @@
-import React, { useReducer, useEffect, useState } from "react";
+import React, { useReducer, useEffect, useState, useContext } from "react";
 import "./election_details_voter.css";
 import "../utils/global.css";
 import logo from "../assets/logo.svg";
 import { ElectionDetails } from "../domain/ElectionDetails";
 import { Candidate } from "../domain/Candidate";
 import { dateToString, ElectionStatus } from "../utils/utils";
-import { Voter } from "../domain/Voter";
 import CandidateList from "../components/CandidateList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import CustomButton from "../components/CustomButton";
+import { UserContext } from "../context/UserContext";
+import CandidateListNoVote from "../components/CandidateListNoVote";
 
 const ACTIONS = {
   SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
@@ -23,7 +24,6 @@ export default function AdminElectionDetails() {
           ...state,
           election: action.payload.fetchedElection,
           candidates: action.payload.fetchedCandidates,
-          voter: action.payload.fetchedVoter,
           totalVotes: Object.values(
             action.payload.fetchedElection.candidates
           ).reduce((prev, curr) => parseInt(prev) + parseInt(curr), 0),
@@ -39,11 +39,11 @@ export default function AdminElectionDetails() {
   const initialState = {
     election: null,
     candidates: [],
-    voter: null,
     totalVotes: 0,
   };
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
+  const { user, setUser } = useContext(UserContext);
 
   const [voterAddressToRegister, setVoterAddressToRegister] = useState("");
 
@@ -70,25 +70,16 @@ export default function AdminElectionDetails() {
       new Candidate(3, "Cassandra Biggiy", "I want to build an airport!"),
     ];
 
-    const fetchedVoter = new Voter(
-      "0xbfc06bd91802ceccefdac434412a56be26e501d4",
-      {
-        3: null,
-        4: 1,
-      }
-    );
-
     stateDispatch({
       type: ACTIONS.INIT,
       payload: {
         fetchedElection: fetchedElection,
         fetchedCandidates: fetchedCandidates,
-        fetchedVoter: fetchedVoter,
       },
     });
   }, []);
 
-  if (!state.election || !state.voter) {
+  if (!state.election) {
     return <div>Loading...</div>;
   }
 
@@ -154,7 +145,7 @@ export default function AdminElectionDetails() {
 
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
-          <div>{state.voter.address}</div>
+          <div>{user.address}</div>
         </div>
       </div>
 
@@ -227,15 +218,11 @@ export default function AdminElectionDetails() {
         >
           Total votes: {state.totalVotes}
         </div>
-        <CandidateList
+        <CandidateListNoVote
           candidates={state.candidates}
           candidatesNumberVotes={state.election.candidates}
-          electionStatus={state.election.electionStatus}
-          voterStatus={state.voterStatus}
-          voteFor={state.voter.votes[state.election.id]}
           totalVotes={state.totalVotes}
-          onClick={() => console.log("lol")}
-        ></CandidateList>
+        ></CandidateListNoVote>
       </div>
 
       <div className="footer">

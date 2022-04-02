@@ -1,17 +1,18 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useContext } from "react";
 import "./election_details_voter.css";
 import "../utils/global.css";
 import logo from "../assets/logo.svg";
 import { ElectionDetails } from "../domain/ElectionDetails";
 import { Candidate } from "../domain/Candidate";
 import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
-import { Voter } from "../domain/Voter";
 import CandidateList from "../components/CandidateList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
+import { UserContext } from "../context/UserContext";
 
 const ACTIONS = {
   SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
   ACTIONS_INIT: "ACTIONS_INIT",
+  SET_VOTER_STATUS: "SET_VOTER_STATUS",
 };
 
 export default function ElectionDetailsVoter() {
@@ -22,16 +23,19 @@ export default function ElectionDetailsVoter() {
           ...state,
           election: action.payload.fetchedElection,
           candidates: action.payload.fetchedCandidates,
-          voter: action.payload.fetchedVoter,
           totalVotes: Object.values(
             action.payload.fetchedElection.candidates
           ).reduce((prev, curr) => parseInt(prev) + parseInt(curr), 0),
-          voterStatus: action.payload.determineVoterStatus,
         };
       case ACTIONS.SET_TOTAL_VOTES:
         return {
           ...state,
           totalVotes: action.payload,
+        };
+      case ACTIONS.SET_VOTER_STATUS:
+        return {
+          ...state,
+          voterStatus: action.payload,
         };
     }
   };
@@ -39,12 +43,12 @@ export default function ElectionDetailsVoter() {
   const initialState = {
     election: null,
     candidates: [],
-    voter: null,
     totalVotes: 0,
     voterStatus: null,
   };
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
+  const { user, setUser } = useContext(UserContext);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -55,7 +59,7 @@ export default function ElectionDetailsVoter() {
       "The next 4 years will be important for our city! Your vote is very important for our future!",
       new Date(2022, 2, 25),
       new Date(2022, 2, 27),
-      ElectionStatus.OPEN,
+      ElectionStatus.ENDED,
       { 1: 17, 2: 24, 3: 58 }
     );
 
@@ -69,22 +73,21 @@ export default function ElectionDetailsVoter() {
       new Candidate(3, "Cassandra Biggiy", "I want to build an airport!"),
     ];
 
-    const fetchedVoter = new Voter(
-      "0xbfc06bd91802ceccefdac434412a56be26e501d4",
-      {
-        3: null,
-        4: 1,
-        2: null,
-      }
-    );
-
-    let determineVoterStatus;
-    if (!(fetchedElection.id in fetchedVoter.votes)) {
-      determineVoterStatus = VoterStatus.NOT_REGISTERED;
-    } else if (fetchedVoter.votes[fetchedElection.id] === null) {
-      determineVoterStatus = VoterStatus.NOT_VOTED;
+    if (!(fetchedElection.id in user.votes)) {
+      stateDispatch({
+        type: ACTIONS.SET_VOTER_STATUS,
+        payload: VoterStatus.NOT_REGISTERED,
+      });
+    } else if (user.votes[fetchedElection.id] === null) {
+      stateDispatch({
+        type: ACTIONS.SET_VOTER_STATUS,
+        payload: VoterStatus.NOT_VOTED,
+      });
     } else {
-      determineVoterStatus = VoterStatus.VOTED;
+      stateDispatch({
+        type: ACTIONS.SET_VOTER_STATUS,
+        payload: VoterStatus.VOTED,
+      });
     }
 
     stateDispatch({
@@ -92,13 +95,11 @@ export default function ElectionDetailsVoter() {
       payload: {
         fetchedElection: fetchedElection,
         fetchedCandidates: fetchedCandidates,
-        fetchedVoter: fetchedVoter,
-        determineVoterStatus: determineVoterStatus,
       },
     });
   }, []);
 
-  if (!state.election || !state.voter || !state.voterStatus) {
+  if (!state.election) {
     return <div>Loading...</div>;
   }
 
@@ -132,8 +133,7 @@ export default function ElectionDetailsVoter() {
   let notVotedLabel;
   if (
     state.voterStatus === VoterStatus.NOT_VOTED &&
-    state.election.electionStatus !== ElectionStatus.ENDED &&
-    state.election.electionStatus !== ElectionStatus.NOT_STARTED
+    state.election.electionStatus === ElectionStatus.OPEN
   ) {
     notVotedLabel = (
       <>
@@ -169,8 +169,7 @@ export default function ElectionDetailsVoter() {
   let alreadyVotedLabel;
   if (
     state.voterStatus === VoterStatus.VOTED &&
-    state.election.electionStatus !== ElectionStatus.ENDED &&
-    state.election.electionStatus !== ElectionStatus.NOT_STARTED
+    state.election.electionStatus === ElectionStatus.OPEN
   ) {
     alreadyVotedLabel = (
       <div
@@ -220,7 +219,7 @@ export default function ElectionDetailsVoter() {
         </div>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
-          <div>{state.voter.address}</div>
+          <div>{user.address}</div>
         </div>
       </div>
 
@@ -264,9 +263,9 @@ export default function ElectionDetailsVoter() {
           candidatesNumberVotes={state.election.candidates}
           electionStatus={state.election.electionStatus}
           voterStatus={state.voterStatus}
-          voteFor={state.voter.votes[state.election.id]}
+          voteFor={user.votes[state.election.id]}
           totalVotes={state.totalVotes}
-          onClick={() => console.log("lol")}
+          onClick={(candidateID) => console.log(candidateID)}
         ></CandidateList>
       </div>
 

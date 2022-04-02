@@ -1,4 +1,4 @@
-import React, { useState, useReducer, useEffect } from "react";
+import React, { useState, useReducer, useEffect, useContext } from "react";
 import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
@@ -10,6 +10,7 @@ import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
 import ElectionListOnlyElectionStatus from "../components/ElectionListOnlyElectionStatus";
+import { UserContext } from "../context/UserContext";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -136,10 +137,7 @@ export default function AdminDashboard() {
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
-  const [account, setAccount] = useState(
-    "0xbfc06bd91802ceccefdac434412a56be26e501d4"
-  );
-
+  const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -328,14 +326,14 @@ export default function AdminDashboard() {
         <CustomButton
           buttonSize={"btn-size-large"}
           onClick={() => {
-            navigate("/admin/election/add");
+            navigate("/admin/add/election");
           }}
         >
           ADD ELECTION
         </CustomButton>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
-          <div>{account}</div>
+          <div>{user.address}</div>
         </div>
       </div>
 

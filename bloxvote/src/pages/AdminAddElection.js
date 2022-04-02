@@ -1,19 +1,18 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useContext, useEffect, useReducer, useState } from "react";
 import "./admin_add_election.css";
 import "./admin_election_details.css";
 import "../utils/global.css";
 import "../utils/footer.css";
 import logo from "../assets/logo.svg";
-import { Voter } from "../domain/Voter";
 import { MdDateRange } from "react-icons/md";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomButton from "../components/CustomButton";
 import { Candidate } from "../domain/Candidate";
 import AddCandidateList from "../components/AddCandidateList";
+import { UserContext } from "../context/UserContext";
 
 const ACTIONS = {
-  ACTIONS_INIT: "ACTIONS_INIT",
   ADD_CANDIDATE: "ADD_CANDIDATE",
   DELETE_CANDIDATE: "DELETE_CANDIDATE",
 };
@@ -41,11 +40,6 @@ let currentCandidateID = 11;
 export default function AdminAddElection() {
   const stateReducer = (state, action) => {
     switch (action.type) {
-      case ACTIONS.INIT:
-        return {
-          ...state,
-          voter: action.payload.fetchedVoter,
-        };
       case ACTIONS.ADD_CANDIDATE: {
         return {
           ...state,
@@ -64,7 +58,6 @@ export default function AdminAddElection() {
   };
 
   const initialState = {
-    voter: null,
     candidatesToBeAdded: [],
   };
 
@@ -79,24 +72,10 @@ export default function AdminAddElection() {
     useState(theDayAfterTomorrow);
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
+  const { user, setUser } = useContext(UserContext);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    const fetchedVoter = new Voter(
-      "0xbfc06bd91802ceccefdac434412a56be26e501d4",
-      {
-        3: null,
-        4: 1,
-      }
-    );
-
-    stateDispatch({
-      type: ACTIONS.INIT,
-      payload: {
-        fetchedVoter: fetchedVoter,
-      },
-    });
   }, []);
 
   useEffect(() => {
@@ -193,9 +172,9 @@ export default function AdminAddElection() {
     );
   }
 
-  if (!state.voter) {
-    return <div>Loading...</div>;
-  }
+  // if (!state.voter) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
     <div className="all-page-wrapper">
@@ -205,7 +184,7 @@ export default function AdminAddElection() {
         </div>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
-          <div>{state.voter.address}</div>
+          <div>{user.address}</div>
         </div>
       </div>
 

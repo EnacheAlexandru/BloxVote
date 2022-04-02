@@ -1,4 +1,4 @@
-import React, { useState, useReducer, useEffect } from "react";
+import React, { useState, useReducer, useEffect, useContext } from "react";
 import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
@@ -9,6 +9,7 @@ import "../utils/global.css";
 import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -135,9 +136,7 @@ export default function DashboardVoter() {
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
-  const [account, setAccount] = useState(
-    "0xbfc06bd91802ceccefdac434412a56be26e501d4"
-  );
+  const { user, setUser } = useContext(UserContext);
 
   const navigateToElectionDetails = useNavigate();
 
@@ -326,7 +325,7 @@ export default function DashboardVoter() {
         </div>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
-          <div>{account}</div>
+          <div>{user.address}</div>
         </div>
       </div>
 
