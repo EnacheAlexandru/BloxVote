@@ -107,6 +107,8 @@ contract Vote {
     }
 
     function registerVoter(address _voter, uint256 _electionID) external isAdmin electionExists(_electionID) {
+        require(_voter != admin, "Administrator not allowed to vote");
+        
         require(block.timestamp <= elections[_electionID - 1].endDate / 1000, "Election ended");
 
         for (uint256 i = 0; i < voters[_voter].length; i++) {
