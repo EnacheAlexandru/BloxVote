@@ -42,8 +42,8 @@ contract("Vote", (accounts) => {
       await instance.addElection(
         "",
         "ab",
-        dateStart.getTime(),
-        dateEnd.getTime(),
+        Math.floor(dateStart.getTime() / 1000),
+        Math.floor(dateEnd.getTime() / 1000),
         [
           ["ac", "ad"],
           ["ae", "af"],
@@ -69,8 +69,8 @@ contract("Vote", (accounts) => {
       await instance.addElection(
         "aa",
         "ab",
-        dateStart.getTime(),
-        dateEnd.getTime(),
+        Math.floor(dateStart.getTime() / 1000),
+        Math.floor(dateEnd.getTime() / 1000),
         [
           ["ac", "ad"],
           ["ae", "af"],
@@ -99,8 +99,8 @@ contract("Vote", (accounts) => {
       await instance.addElection(
         "aa",
         "ab",
-        dateStart.getTime(),
-        dateEnd.getTime(),
+        Math.floor(dateStart.getTime() / 1000),
+        Math.floor(dateEnd.getTime() / 1000),
         [
           ["ac", "ad"],
           ["ae", "af"],
@@ -126,8 +126,8 @@ contract("Vote", (accounts) => {
       await instance.addElection(
         "aa",
         "ab",
-        dateStart.getTime(),
-        dateEnd.getTime(),
+        Math.floor(dateStart.getTime() / 1000),
+        Math.floor(dateEnd.getTime() / 1000),
         [["ac", "ad"]],
         { from: accounts[0] }
       );
@@ -149,8 +149,8 @@ contract("Vote", (accounts) => {
       await instance.addElection(
         "aa",
         "ab",
-        dateStart.getTime(),
-        dateEnd.getTime(),
+        Math.floor(dateStart.getTime() / 1000),
+        Math.floor(dateEnd.getTime() / 1000),
         [
           ["ac", "ad"],
           ["ae", ""],
@@ -176,8 +176,8 @@ contract("Vote", (accounts) => {
       await instance.addElection(
         "aa",
         "ab",
-        dateStart.getTime(),
-        dateEnd.getTime(),
+        Math.floor(dateStart.getTime() / 1000),
+        Math.floor(dateEnd.getTime() / 1000),
         [
           ["ac", "ad"],
           ["ae", "af"],
@@ -201,8 +201,8 @@ contract("Vote", (accounts) => {
     await instance.addElection(
       "aa",
       "ab",
-      dateStart.getTime(),
-      dateEnd.getTime(),
+      Math.floor(dateStart.getTime() / 1000),
+      Math.floor(dateEnd.getTime() / 1000),
       [
         ["ac", "ad"],
         ["ae", "af"],
@@ -228,8 +228,8 @@ contract("Vote", (accounts) => {
     await instance.addElection(
       "aa",
       "ab",
-      dateStart.getTime(),
-      dateEnd.getTime(),
+      Math.floor(dateStart.getTime() / 1000),
+      Math.floor(dateEnd.getTime() / 1000),
       [
         ["ac", "ad"],
         ["ae", "af"],
@@ -241,8 +241,8 @@ contract("Vote", (accounts) => {
     await instance.addElection(
       "ba",
       "bb",
-      dateStart.getTime(),
-      dateEnd.getTime(),
+      Math.floor(dateStart.getTime() / 1000),
+      Math.floor(dateEnd.getTime() / 1000),
       [
         ["bc", "bd"],
         ["be", "bf"],

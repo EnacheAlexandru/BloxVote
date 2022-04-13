@@ -4,7 +4,6 @@ import "./candidate_card.css";
 
 export default function CandidateCard({
   candidate,
-  candidateNumberVotes,
   isLeading,
   totalVotes,
   electionStatus,
@@ -45,11 +44,11 @@ export default function CandidateCard({
       <div className="default-text size-small color3 percentage">
         {totalVotes === 0
           ? "0%"
-          : `${((candidateNumberVotes / totalVotes) * 100).toFixed(2)}%`}
+          : `${((candidate.numberVotes / totalVotes) * 100).toFixed(2)}%`}
       </div>
       <div className={isLeading ? "number-votes-lead" : "number-votes"}>
         <div className="default-text size-large white">
-          {candidateNumberVotes}
+          {candidate.numberVotes}
         </div>
       </div>
     </div>

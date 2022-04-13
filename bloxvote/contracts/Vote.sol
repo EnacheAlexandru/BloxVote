@@ -85,7 +85,7 @@ contract Vote {
         require(bytes(_title).length >= 1 && bytes(_title).length <= 75, "Invalid election title");
         require(bytes(_description).length >= 1 && bytes(_description).length <= 300, "Invalid election description");
 
-        require(_startDate / 1000 >= block.timestamp + 1 days, "Invalid start date");
+        require(_startDate >= block.timestamp + 1 days, "Invalid start date");
         require(_endDate >= _startDate + 1 days, "End and start dates should be more than one day apart");
         
         require(_candidatesToAdd.length >= 2 && _candidatesToAdd.length <= 10, "Invalid number of candidates");
@@ -109,7 +109,7 @@ contract Vote {
     function registerVoter(address _voter, uint256 _electionID) external isAdmin electionExists(_electionID) {
         require(_voter != admin, "Administrator not allowed to vote");
         
-        require(block.timestamp <= elections[_electionID - 1].endDate / 1000, "Election ended");
+        require(block.timestamp <= elections[_electionID - 1].endDate, "Election ended");
 
         for (uint256 i = 0; i < voters[_voter].length; i++) {
             require(voters[_voter][i].electionID != _electionID, "Already registered to the election");
@@ -121,8 +121,8 @@ contract Vote {
     function vote(address _voter, uint256 _electionID, uint256 _candidateID) external electionExists(_electionID) candidateExists(_candidateID) {
         require(_voter != admin, "Administrator not allowed to vote");
 
-        require(block.timestamp >= elections[_electionID - 1].startDate / 1000, "Election not open");
-        require(block.timestamp <= elections[_electionID - 1].endDate / 1000, "Election ended");
+        require(block.timestamp >= elections[_electionID - 1].startDate, "Election not open");
+        require(block.timestamp <= elections[_electionID - 1].endDate, "Election ended");
         
         bool isCandidateInElection = false;
         for (uint256 i = 0; i < elections[_electionID - 1].candidatesIDs.length; i++) {

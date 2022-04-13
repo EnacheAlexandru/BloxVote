@@ -1,12 +1,22 @@
 import React from "react";
 import "../utils/global.css";
-import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
+import {
+  computeElectionStatus,
+  dateToString,
+  ElectionStatus,
+  VoterStatus,
+} from "../utils/utils";
 import CustomButtonStatus from "./CustomButtonStatus";
 import "./election_card.css";
 
 export default function ElectionCard({ election, onClick }) {
+  const electionStatus = computeElectionStatus(
+    election.dateStart,
+    election.dateEnd
+  );
+
   let electionStatusButton;
-  if (election.electionStatus === ElectionStatus.OPEN) {
+  if (electionStatus === ElectionStatus.OPEN) {
     electionStatusButton = (
       <CustomButtonStatus
         buttonStyle={"btn-status-color1"}
@@ -15,7 +25,7 @@ export default function ElectionCard({ election, onClick }) {
         OPEN
       </CustomButtonStatus>
     );
-  } else if (election.electionStatus === ElectionStatus.ENDED) {
+  } else if (electionStatus === ElectionStatus.ENDED) {
     electionStatusButton = (
       <CustomButtonStatus
         buttonStyle={"btn-status-color3"}
@@ -24,7 +34,7 @@ export default function ElectionCard({ election, onClick }) {
         ENDED
       </CustomButtonStatus>
     );
-  } else if (election.electionStatus === ElectionStatus.NOT_STARTED) {
+  } else if (electionStatus === ElectionStatus.NOT_STARTED) {
     electionStatusButton = (
       <CustomButtonStatus
         buttonStyle={"btn-status-color2"}
@@ -35,36 +45,34 @@ export default function ElectionCard({ election, onClick }) {
     );
   }
 
-  let voterStatusButton = null;
-  if (election.electionStatus !== ElectionStatus.NOT_STARTED) {
-    if (election.voterStatus === VoterStatus.NOT_REGISTERED) {
-      voterStatusButton = (
-        <CustomButtonStatus
-          buttonStyle={"btn-status-color4"}
-          buttonSize={"btn-size-large"}
-        >
-          NOT REGISTERED
-        </CustomButtonStatus>
-      );
-    } else if (election.voterStatus === VoterStatus.NOT_VOTED) {
-      voterStatusButton = (
-        <CustomButtonStatus
-          buttonStyle={"btn-status-color2"}
-          buttonSize={"btn-size-large"}
-        >
-          NOT VOTED
-        </CustomButtonStatus>
-      );
-    } else if (election.voterStatus === VoterStatus.VOTED) {
-      voterStatusButton = (
-        <CustomButtonStatus
-          buttonStyle={"btn-status-color1"}
-          buttonSize={"btn-size-large"}
-        >
-          VOTED
-        </CustomButtonStatus>
-      );
-    }
+  let voterStatusButton;
+  if (election.voterStatus === VoterStatus.NOT_REGISTERED) {
+    voterStatusButton = (
+      <CustomButtonStatus
+        buttonStyle={"btn-status-color4"}
+        buttonSize={"btn-size-large"}
+      >
+        NOT REGISTERED
+      </CustomButtonStatus>
+    );
+  } else if (election.voterStatus === VoterStatus.NOT_VOTED) {
+    voterStatusButton = (
+      <CustomButtonStatus
+        buttonStyle={"btn-status-color2"}
+        buttonSize={"btn-size-large"}
+      >
+        NOT VOTED
+      </CustomButtonStatus>
+    );
+  } else if (election.voterStatus === VoterStatus.VOTED) {
+    voterStatusButton = (
+      <CustomButtonStatus
+        buttonStyle={"btn-status-color1"}
+        buttonSize={"btn-size-large"}
+      >
+        VOTED
+      </CustomButtonStatus>
+    );
   }
 
   return (
@@ -82,9 +90,7 @@ export default function ElectionCard({ election, onClick }) {
       </div>
       <div className="election-card-status">
         <div>{electionStatusButton}</div>
-        {voterStatusButton !== null ? (
-          <div style={{ marginTop: "10px" }}>{voterStatusButton}</div>
-        ) : null}
+        <div style={{ marginTop: "10px" }}>{voterStatusButton}</div>
       </div>
     </div>
   );

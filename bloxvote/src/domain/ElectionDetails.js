@@ -6,7 +6,7 @@ export class ElectionDetails {
     dateStart,
     dateEnd,
     electionStatus,
-    candidates
+    voterStatus
   ) {
     this.id = id;
     this.title = title;
@@ -14,6 +14,6 @@ export class ElectionDetails {
     this.dateStart = dateStart;
     this.dateEnd = dateEnd;
     this.electionStatus = electionStatus;
-    this.candidates = candidates; // Map<candidateID, numberVotes>
+    this.voterStatus = voterStatus;
   }
 }

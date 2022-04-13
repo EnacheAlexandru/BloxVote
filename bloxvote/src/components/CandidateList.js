@@ -3,26 +3,27 @@ import CandidateCard from "./CandidateCard";
 
 export default function CandidateList({
   candidates,
-  candidatesNumberVotes,
   electionStatus,
   voterStatus,
   voteFor,
   totalVotes,
   onClick,
 }) {
-  const candidateInTheLead = Math.max(...Object.values(candidatesNumberVotes));
+  const leading = Math.max.apply(
+    Math,
+    candidates.map((candidate) => candidate.numberVotes)
+  );
 
   return candidates.map((candidate) => {
     return (
       <CandidateCard
         key={candidate.id}
         candidate={candidate}
-        candidateNumberVotes={candidatesNumberVotes[candidate.id]}
-        isLeading={candidatesNumberVotes[candidate.id] === candidateInTheLead}
+        isLeading={candidate.numberVotes == leading}
         totalVotes={totalVotes}
         electionStatus={electionStatus}
         voterStatus={voterStatus}
-        isVotedFor={voteFor === candidate.id}
+        isVotedFor={voteFor == candidate.id}
         onClick={(candidateID) => onClick(candidateID)}
       ></CandidateCard>
     );

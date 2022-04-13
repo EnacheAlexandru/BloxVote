@@ -1,15 +1,16 @@
-import React, { useState, useReducer, useEffect, useContext } from "react";
+import React, { useReducer, useEffect, useContext } from "react";
 import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
 import CustomTextField from "../components/CustomTextField";
 import { Election } from "../domain/Election";
-import { ElectionStatus, VoterStatus } from "../utils/utils";
+import { computeElectionStatus, computeVoterStatus } from "../utils/utils";
 import "../utils/global.css";
 import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
+import { ElectionDTO } from "../dto/ElectionDTO";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -25,17 +26,17 @@ const ACTIONS = {
 
 const itemsPerPage = 4;
 
-export default function DashboardVoter() {
-  const computeNumberPages = (list) => {
-    let numberPages;
-    if (list.length % itemsPerPage !== 0) {
-      numberPages = Math.floor(list.length / itemsPerPage) + 1;
-    } else {
-      numberPages = Math.floor(list.length / itemsPerPage);
-    }
-    return numberPages;
-  };
+const computeNumberPages = (list) => {
+  let numberPages;
+  if (list.length % itemsPerPage !== 0) {
+    numberPages = Math.floor(list.length / itemsPerPage) + 1;
+  } else {
+    numberPages = Math.floor(list.length / itemsPerPage);
+  }
+  return numberPages;
+};
 
+export default function DashboardVoter() {
   const stateReducer = (state, action) => {
     switch (action.type) {
       case ACTIONS.PREVIOUS_PAGE:
@@ -64,11 +65,18 @@ export default function DashboardVoter() {
           );
         }
         if (state.filterDateValue) {
-          filtered = filtered.filter(
-            (election) =>
-              state.filterDateValue >= election.dateStart &&
-              state.filterDateValue <= election.dateEnd
-          );
+          filtered = filtered.filter((election) => {
+            let dateStartMidnight = new Date(election.dateStart);
+            dateStartMidnight.setHours(0, 0, 0, 0);
+
+            let dateEndMidnight = new Date(election.dateEnd);
+            dateEndMidnight.setHours(0, 0, 0, 0);
+
+            return (
+              state.filterDateValue >= dateStartMidnight &&
+              state.filterDateValue <= dateEndMidnight
+            );
+          });
         }
         return {
           ...state,
@@ -150,90 +158,84 @@ export default function DashboardVoter() {
 
   useEffect(() => {
     let fetchedElections = [
-      new Election(
+      new ElectionDTO(
         1,
         "Vote for your mayor",
-        new Date(2022, 2, 25),
-        new Date(2022, 2, 27),
-        ElectionStatus.OPEN,
-        VoterStatus.NOT_REGISTERED
+        Math.floor(new Date(2022, 3, 25).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 3, 27).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         2,
         "Vote for your president 2022",
-        new Date(2022, 3, 5),
-        new Date(2022, 3, 7),
-        ElectionStatus.NOT_STARTED,
-        VoterStatus.NOT_REGISTERED
+        Math.floor(new Date(2022, 3, 5).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 3, 7).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         3,
         "Vote for the new law",
-        new Date(2022, 2, 15),
-        new Date(2022, 2, 17),
-        ElectionStatus.ENDED,
-        VoterStatus.VOTED
+        Math.floor(new Date(2022, 3, 10).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 3, 17).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         4,
         "Vote for your president 4018",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         5,
         "Vote for your president 5010",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         6,
         "Vote for your president 6011",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         7,
         "Vote for your president 7012",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         8,
         "Vote for your president 8013",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         9,
         "Vote for your president 9013",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
-      new Election(
+      new ElectionDTO(
         10,
         "Vote for your president 10013",
-        new Date(2018, 7, 8),
-        new Date(2018, 7, 6),
-        ElectionStatus.ENDED,
-        VoterStatus.NOT_VOTED
+        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
       ),
     ];
+
+    const elections = fetchedElections
+      .map((election) => {
+        return new Election(
+          election.id,
+          election.title,
+          election.dateStart,
+          election.dateEnd,
+          computeElectionStatus(election.dateStart, election.dateEnd),
+          computeVoterStatus(election.id, user.votes)
+        );
+      })
+      .sort((a, b) => b.dateStart - a.dateStart);
+
     stateDispatch({
       type: ACTIONS.FETCH_ELECTIONS,
-      payload: fetchedElections.sort((a, b) => b.dateStart - a.dateStart),
+      payload: elections,
     });
   }, []);
 
@@ -373,6 +375,7 @@ export default function DashboardVoter() {
           </div>
           <CustomTextField
             icon="date"
+            withTime={false}
             onChange={(value) =>
               stateDispatch({
                 type: ACTIONS.SET_FILTER_DATE_VALUE,

@@ -24,7 +24,7 @@
 
 .date-form {
   display: flex;
-  align-items: center;
+  gap: 5%;
 }
 
 .date-form > div {

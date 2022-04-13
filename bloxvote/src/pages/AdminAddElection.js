@@ -22,8 +22,13 @@ const today = new Date();
 let tomorrow = new Date();
 tomorrow.setDate(today.getDate() + 1);
 
-let theDayAfterTomorrow = new Date();
-theDayAfterTomorrow.setDate(today.getDate() + 2);
+const filterPassedTime = (time) => {
+  let tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const selectedDate = new Date(time);
+
+  return tomorrow.getTime() < selectedDate.getTime();
+};
 
 let currentCandidateID = 11;
 
@@ -68,8 +73,6 @@ export default function AdminAddElection() {
 
   const [startDateElection, setStartDateElection] = useState(null);
   const [endDateElection, setEndDateElection] = useState(null);
-  const [endDateMinElection, setEndDateMinElection] =
-    useState(theDayAfterTomorrow);
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
   const { user, setUser } = useContext(UserContext);
@@ -79,18 +82,18 @@ export default function AdminAddElection() {
   }, []);
 
   useEffect(() => {
-    if (startDateElection) {
-      let tomorrowAfterStartDateElection = new Date(startDateElection);
-      tomorrowAfterStartDateElection.setDate(
-        tomorrowAfterStartDateElection.getDate() + 1
-      );
-      setEndDateMinElection(tomorrowAfterStartDateElection);
-      if (endDateElection) {
-        if (startDateElection >= endDateElection) {
-          setEndDateElection(null);
-        }
-      }
-    }
+    // if (startDateElection) {
+    //   let tomorrowAfterStartDateElection = new Date(startDateElection);
+    //   tomorrowAfterStartDateElection.setDate(
+    //     tomorrowAfterStartDateElection.getDate() + 1
+    //   );
+    //   setEndDateMinElection(tomorrowAfterStartDateElection);
+    //   if (endDateElection) {
+    //     if (startDateElection >= endDateElection) {
+    //       setEndDateElection(null);
+    //     }
+    //   }
+    // }
   }, [startDateElection]);
 
   let titleElectionError;
@@ -118,6 +121,19 @@ export default function AdminAddElection() {
   if (!endDateElection) {
     endDateElectionError = (
       <span className="default-text size-smaller red">Invalid field</span>
+    );
+  }
+
+  let startAndEndDatesTooCloseError;
+  if (
+    startDateElection &&
+    endDateElection &&
+    Math.round((endDateElection - startDateElection) / (1000 * 60)) < 60 * 24
+  ) {
+    startAndEndDatesTooCloseError = (
+      <span className="default-text size-smaller red">
+        Start and end dates should be at least one day apart
+      </span>
     );
   }
 
@@ -176,6 +192,8 @@ export default function AdminAddElection() {
   //   return <div>Loading...</div>;
   // }
 
+  console.log(Math.round((endDateElection - startDateElection) / (1000 * 60)));
+
   return (
     <div className="all-page-wrapper">
       <div className="header">
@@ -227,48 +245,57 @@ export default function AdminAddElection() {
         <div style={{ marginBottom: "40px" }}></div>
 
         <div className="date-form">
-          <div className="date-form-component">
+          <div>
             <div className="default-text size-large color3">Start date:</div>
-            <div style={{ margin: "0 2% 0 2%" }}>
-              <DatePicker
-                className="custom-text-field"
-                onChange={(date) => {
-                  setStartDateElection(date);
-                }}
-                selected={startDateElection}
-                minDate={tomorrow}
-                dateFormat="dd/MM/yyyy"
-              ></DatePicker>
-            </div>
-            <div style={{ marginRight: "1%" }}>
-              <MdDateRange size={30}></MdDateRange>
+            <div className="date-form-component">
+              <div style={{ width: "100%" }}>
+                <DatePicker
+                  className="custom-text-field"
+                  showTimeSelect
+                  onChange={(date) => {
+                    setStartDateElection(date);
+                  }}
+                  selected={startDateElection}
+                  minDate={tomorrow}
+                  filterTime={filterPassedTime}
+                  dateFormat="dd/MM/yyyy HH:mm"
+                  timeFormat="HH:mm"
+                ></DatePicker>
+              </div>
+              <div style={{ marginLeft: "1%" }}>
+                <MdDateRange size={30}></MdDateRange>
+              </div>
             </div>
             {startDateElectionError}
           </div>
 
-          <div
-            className="date-form-component"
-            style={{ justifyContent: "end" }}
-          >
+          <div>
             <div className="default-text size-large color3">End date:</div>
-            <div style={{ margin: "0 2% 0 2%" }}>
-              <DatePicker
-                className="custom-text-field"
-                onChange={(date) => {
-                  setEndDateElection(date);
-                }}
-                selected={endDateElection}
-                minDate={endDateMinElection}
-                dateFormat="dd/MM/yyyy"
-              ></DatePicker>
+            <div className="date-form-component">
+              <div style={{ width: "100%" }}>
+                <DatePicker
+                  className="custom-text-field"
+                  showTimeSelect
+                  onChange={(date) => {
+                    setEndDateElection(date);
+                  }}
+                  selected={endDateElection}
+                  minDate={tomorrow}
+                  filterTime={filterPassedTime}
+                  dateFormat="dd/MM/yyyy HH:mm"
+                  timeFormat="HH:mm"
+                ></DatePicker>
+              </div>
+              <div style={{ marginLeft: "1%" }}>
+                <MdDateRange size={30}></MdDateRange>
+              </div>
             </div>
 
-            <div style={{ marginRight: "1%" }}>
-              <MdDateRange size={30}></MdDateRange>
-            </div>
             {endDateElectionError}
           </div>
         </div>
+
+        {startAndEndDatesTooCloseError}
 
         <div style={{ marginBottom: "40px" }}></div>
 

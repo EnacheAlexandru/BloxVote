@@ -8,6 +8,7 @@ export default function CustomTextField({
   width = "100%",
   icon = "none",
   minDate = null,
+  withTime = true,
   onChange,
 }) {
   const [selectedDate, setSelectedDate] = useState("");
@@ -16,20 +17,36 @@ export default function CustomTextField({
   let textFieldIcon;
 
   if (icon === "date") {
-    if (minDate) {
+    if (minDate && withTime) {
       textField = (
         <DatePicker
           className="custom-txtfld"
+          showTimeSelect
           onChange={(date) => {
             onChange(date);
             setSelectedDate(date);
           }}
           selected={selectedDate}
-          dateFormat="dd/MM/yyyy"
           minDate={minDate}
+          dateFormat="dd/MM/yyyy HH:mm"
+          timeFormat="HH:mm"
         ></DatePicker>
       );
-    } else {
+    } else if (!minDate && withTime) {
+      textField = (
+        <DatePicker
+          className="custom-txtfld"
+          showTimeSelect
+          onChange={(date) => {
+            onChange(date);
+            setSelectedDate(date);
+          }}
+          selected={selectedDate}
+          dateFormat="dd/MM/yyyy HH:mm"
+          timeFormat="HH:mm"
+        ></DatePicker>
+      );
+    } else if (!minDate && !withTime) {
       textField = (
         <DatePicker
           className="custom-txtfld"

@@ -1,12 +1,21 @@
 import React from "react";
 import "../utils/global.css";
-import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
+import {
+  computeElectionStatus,
+  dateToString,
+  ElectionStatus,
+} from "../utils/utils";
 import CustomButtonStatus from "./CustomButtonStatus";
 import "./election_card.css";
 
 export default function ElectionCardOnlyElectionStatus({ election, onClick }) {
+  const electionStatus = computeElectionStatus(
+    election.dateStart,
+    election.dateEnd
+  );
+
   let electionStatusButton;
-  if (election.electionStatus === ElectionStatus.OPEN) {
+  if (electionStatus === ElectionStatus.OPEN) {
     electionStatusButton = (
       <CustomButtonStatus
         buttonStyle={"btn-status-color1"}
@@ -15,7 +24,7 @@ export default function ElectionCardOnlyElectionStatus({ election, onClick }) {
         OPEN
       </CustomButtonStatus>
     );
-  } else if (election.electionStatus === ElectionStatus.ENDED) {
+  } else if (electionStatus === ElectionStatus.ENDED) {
     electionStatusButton = (
       <CustomButtonStatus
         buttonStyle={"btn-status-color3"}
@@ -24,7 +33,7 @@ export default function ElectionCardOnlyElectionStatus({ election, onClick }) {
         ENDED
       </CustomButtonStatus>
     );
-  } else if (election.electionStatus === ElectionStatus.NOT_STARTED) {
+  } else if (electionStatus === ElectionStatus.NOT_STARTED) {
     electionStatusButton = (
       <CustomButtonStatus
         buttonStyle={"btn-status-color2"}

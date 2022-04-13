@@ -4,15 +4,21 @@ import "../utils/global.css";
 import logo from "../assets/logo.svg";
 import { ElectionDetails } from "../domain/ElectionDetails";
 import { Candidate } from "../domain/Candidate";
-import { dateToString, ElectionStatus, VoterStatus } from "../utils/utils";
+import {
+  computeElectionStatus,
+  computeVoterStatus,
+  dateToString,
+  ElectionStatus,
+  VoterStatus,
+} from "../utils/utils";
 import CandidateList from "../components/CandidateList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { UserContext } from "../context/UserContext";
+import { ElectionDetailsDTO } from "../dto/ElectionDetailsDTO";
 
 const ACTIONS = {
   SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
   ACTIONS_INIT: "ACTIONS_INIT",
-  SET_VOTER_STATUS: "SET_VOTER_STATUS",
 };
 
 export default function ElectionDetailsVoter() {
@@ -23,19 +29,12 @@ export default function ElectionDetailsVoter() {
           ...state,
           election: action.payload.fetchedElection,
           candidates: action.payload.fetchedCandidates,
-          totalVotes: Object.values(
-            action.payload.fetchedElection.candidates
-          ).reduce((prev, curr) => parseInt(prev) + parseInt(curr), 0),
+          totalVotes: action.payload.totalVotes,
         };
       case ACTIONS.SET_TOTAL_VOTES:
         return {
           ...state,
           totalVotes: action.payload,
-        };
-      case ACTIONS.SET_VOTER_STATUS:
-        return {
-          ...state,
-          voterStatus: action.payload,
         };
     }
   };
@@ -44,7 +43,6 @@ export default function ElectionDetailsVoter() {
     election: null,
     candidates: [],
     totalVotes: 0,
-    voterStatus: null,
   };
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
@@ -53,48 +51,47 @@ export default function ElectionDetailsVoter() {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const fetchedElection = new ElectionDetails(
+    const fetchedElection = new ElectionDetailsDTO(
       2,
       "Vote for your mayor",
       "The next 4 years will be important for our city! Your vote is very important for our future!",
-      new Date(2022, 2, 25),
-      new Date(2022, 2, 27),
-      ElectionStatus.ENDED,
-      { 1: 17, 2: 24, 3: 58 }
+      Math.floor(new Date(2022, 3, 14).getTime() / 1000) * 1000,
+      Math.floor(new Date(2022, 3, 16).getTime() / 1000) * 1000,
+      [1, 2, 3]
     );
 
     const fetchedCandidates = [
-      new Candidate(1, "John Manner", "I want to make lots of parks!"),
+      new Candidate(1, "John Manner", "I want to make more parks!", 17),
       new Candidate(
         2,
         "Umbert Gothium",
-        "I want to make a new hospital and a new mall for my lovely citizens!"
+        "I want to make a new hospital and a new mall for my lovely citizens!",
+        24
       ),
-      new Candidate(3, "Cassandra Biggiy", "I want to build an airport!"),
+      new Candidate(3, "Cassandra Biggiy", "I want to build an airport!", 58),
     ];
 
-    if (!(fetchedElection.id in user.votes)) {
-      stateDispatch({
-        type: ACTIONS.SET_VOTER_STATUS,
-        payload: VoterStatus.NOT_REGISTERED,
-      });
-    } else if (user.votes[fetchedElection.id] === null) {
-      stateDispatch({
-        type: ACTIONS.SET_VOTER_STATUS,
-        payload: VoterStatus.NOT_VOTED,
-      });
-    } else {
-      stateDispatch({
-        type: ACTIONS.SET_VOTER_STATUS,
-        payload: VoterStatus.VOTED,
-      });
-    }
+    let totalVotes = 0;
+    fetchedCandidates.forEach(
+      (candidate) => (totalVotes = totalVotes + candidate.numberVotes)
+    );
+
+    const election = new ElectionDetails(
+      fetchedElection.id,
+      fetchedElection.title,
+      fetchedElection.description,
+      fetchedElection.dateStart,
+      fetchedElection.dateEnd,
+      computeElectionStatus(fetchedElection.dateStart, fetchedElection.dateEnd),
+      computeVoterStatus(fetchedElection.id, user.votes)
+    );
 
     stateDispatch({
       type: ACTIONS.INIT,
       payload: {
-        fetchedElection: fetchedElection,
+        fetchedElection: election,
         fetchedCandidates: fetchedCandidates,
+        totalVotes: totalVotes,
       },
     });
   }, []);
@@ -105,7 +102,7 @@ export default function ElectionDetailsVoter() {
 
   let notRegisteredLabel;
   if (
-    state.voterStatus === VoterStatus.NOT_REGISTERED &&
+    state.election.voterStatus === VoterStatus.NOT_REGISTERED &&
     state.election.electionStatus !== ElectionStatus.ENDED
   ) {
     notRegisteredLabel = (
@@ -117,7 +114,7 @@ export default function ElectionDetailsVoter() {
       </div>
     );
   } else if (
-    state.voterStatus === VoterStatus.NOT_REGISTERED &&
+    state.election.voterStatus === VoterStatus.NOT_REGISTERED &&
     state.election.electionStatus === ElectionStatus.ENDED
   ) {
     notRegisteredLabel = (
@@ -132,7 +129,7 @@ export default function ElectionDetailsVoter() {
 
   let notVotedLabel;
   if (
-    state.voterStatus === VoterStatus.NOT_VOTED &&
+    state.election.voterStatus === VoterStatus.NOT_VOTED &&
     state.election.electionStatus === ElectionStatus.OPEN
   ) {
     notVotedLabel = (
@@ -153,7 +150,7 @@ export default function ElectionDetailsVoter() {
       </>
     );
   } else if (
-    state.voterStatus === VoterStatus.NOT_VOTED &&
+    state.election.voterStatus === VoterStatus.NOT_VOTED &&
     state.election.electionStatus === ElectionStatus.ENDED
   ) {
     notVotedLabel = (
@@ -168,7 +165,7 @@ export default function ElectionDetailsVoter() {
 
   let alreadyVotedLabel;
   if (
-    state.voterStatus === VoterStatus.VOTED &&
+    state.election.voterStatus === VoterStatus.VOTED &&
     state.election.electionStatus === ElectionStatus.OPEN
   ) {
     alreadyVotedLabel = (
@@ -260,9 +257,8 @@ export default function ElectionDetailsVoter() {
         </div>
         <CandidateList
           candidates={state.candidates}
-          candidatesNumberVotes={state.election.candidates}
           electionStatus={state.election.electionStatus}
-          voterStatus={state.voterStatus}
+          voterStatus={state.election.voterStatus}
           voteFor={user.votes[state.election.id]}
           totalVotes={state.totalVotes}
           onClick={(candidateID) => console.log(candidateID)}
