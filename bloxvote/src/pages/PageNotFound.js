@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { UserContext } from "../context/UserContext";
 
-export default function ErrorPage() {
+export default function PageNotFound() {
   const { user, setUser } = useContext(UserContext);
   const navigateTo = useNavigate();
 
   const checkMetaMask = async () => {
     if (typeof window.ethereum === "undefined") {
       navigateTo("/nomask");
-      return;
     }
 
     let accounts;
@@ -29,22 +28,12 @@ export default function ErrorPage() {
     }
     setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
-      navigateTo("/admin");
-      return;
-    }
-
     window.ethereum.on("accountsChanged", (accounts) => {
       if (!accounts || accounts.length === 0) {
         navigateTo("/nomask");
         return;
       }
       setUser((state) => ({ ...state, address: accounts[0] }));
-
-      if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
-        navigateTo("/admin");
-        return;
-      }
     });
   };
 
@@ -57,6 +46,10 @@ export default function ErrorPage() {
       <div className="header">
         <div>
           <img className="logo-size" src={logo} alt="logo"></img>
+        </div>
+        <div className="default-text size-smaller color3">
+          <div style={{ textAlign: "right" }}>Logged in as:</div>
+          <div>{user.address}</div>
         </div>
       </div>
 
@@ -74,7 +67,7 @@ export default function ErrorPage() {
           We're sorry!
         </div>
         <div className="default-text size-large color3">
-          Please make sure that MetaMask is installed and you are logged in.
+          We couldn't find the page you requested.
         </div>
       </div>
 

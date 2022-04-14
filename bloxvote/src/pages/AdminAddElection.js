@@ -11,6 +11,7 @@ import CustomButton from "../components/CustomButton";
 import { Candidate } from "../domain/Candidate";
 import AddCandidateList from "../components/AddCandidateList";
 import { UserContext } from "../context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const ACTIONS = {
   ADD_CANDIDATE: "ADD_CANDIDATE",
@@ -76,8 +77,52 @@ export default function AdminAddElection() {
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
   const { user, setUser } = useContext(UserContext);
+  const navigateTo = useNavigate();
+
+  const checkMetaMask = async () => {
+    if (typeof window.ethereum === "undefined") {
+      navigateTo("/nomask");
+      return;
+    }
+
+    let accounts;
+    try {
+      accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+    } catch (error) {
+      navigateTo("/nomask");
+      return;
+    }
+
+    if (!accounts || accounts.length === 0) {
+      navigateTo("/nomask");
+      return;
+    }
+    setUser((state) => ({ ...state, address: accounts[0] }));
+
+    if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+      navigateTo("/");
+      return;
+    }
+
+    window.ethereum.on("accountsChanged", (accounts) => {
+      if (!accounts || accounts.length === 0) {
+        navigateTo("/nomask");
+        return;
+      }
+      setUser((state) => ({ ...state, address: accounts[0] }));
+
+      if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+        navigateTo("/");
+        return;
+      }
+    });
+  };
 
   useEffect(() => {
+    checkMetaMask();
+
     window.scrollTo(0, 0);
   }, []);
 
@@ -191,8 +236,6 @@ export default function AdminAddElection() {
   // if (!state.voter) {
   //   return <div>Loading...</div>;
   // }
-
-  console.log(Math.round((endDateElection - startDateElection) / (1000 * 60)));
 
   return (
     <div className="all-page-wrapper">

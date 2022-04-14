@@ -3,8 +3,7 @@ import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
 import CustomTextField from "../components/CustomTextField";
-import { Election } from "../domain/Election";
-import { computeElectionStatus, VoterStatus } from "../utils/utils";
+import { computeElectionStatus } from "../utils/utils";
 import "../utils/global.css";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
@@ -146,7 +145,48 @@ export default function AdminDashboard() {
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
   const { user, setUser } = useContext(UserContext);
-  const navigate = useNavigate();
+  const navigateTo = useNavigate();
+
+  const checkMetaMask = async () => {
+    if (typeof window.ethereum === "undefined") {
+      navigateTo("/nomask");
+      return;
+    }
+
+    let accounts;
+    try {
+      accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+    } catch (error) {
+      navigateTo("/nomask");
+      return;
+    }
+
+    if (!accounts || accounts.length === 0) {
+      navigateTo("/nomask");
+      return;
+    }
+    setUser((state) => ({ ...state, address: accounts[0] }));
+
+    if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+      navigateTo("/");
+      return;
+    }
+
+    window.ethereum.on("accountsChanged", (accounts) => {
+      if (!accounts || accounts.length === 0) {
+        navigateTo("/nomask");
+        return;
+      }
+      setUser((state) => ({ ...state, address: accounts[0] }));
+
+      if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+        navigateTo("/");
+        return;
+      }
+    });
+  };
 
   useEffect(() => {
     stateDispatch({
@@ -157,6 +197,8 @@ export default function AdminDashboard() {
   }, [state.elections]);
 
   useEffect(() => {
+    checkMetaMask();
+
     let fetchedElections = [
       new ElectionDTO(
         1,
@@ -327,7 +369,7 @@ export default function AdminDashboard() {
         <CustomButton
           buttonSize={"btn-size-large"}
           onClick={() => {
-            navigate("/admin/add/election");
+            navigateTo("/admin/add/election");
           }}
         >
           ADD ELECTION
@@ -397,7 +439,7 @@ export default function AdminDashboard() {
 
       <ElectionListOnlyElectionStatus
         elections={state.paginatedElections}
-        onClick={(electionID) => navigate(`/admin/election/${electionID}`)}
+        onClick={(electionID) => navigateTo(`/admin/election/${electionID}`)}
       ></ElectionListOnlyElectionStatus>
 
       <div className="page-buttons">

@@ -6,6 +6,7 @@ import AdminElectionDetails from "./pages/AdminElectionDetails";
 import DashboardVoter from "./pages/DashboardVoter";
 import ElectionDetailsVoter from "./pages/ElectionDetailsVoter";
 import ErrorPage from "./pages/ErrorPage";
+import PageNotFound from "./pages/PageNotFound";
 
 export default function App() {
   return (
@@ -21,7 +22,7 @@ export default function App() {
           <Route exact path="/admin" element={<AdminDashboard />}></Route>
           <Route
             exact
-            path="admin/add/election"
+            path="/admin/add/election"
             element={<AdminAddElection />}
           ></Route>
           <Route
@@ -29,7 +30,8 @@ export default function App() {
             path="/admin/election/:electionID"
             element={<AdminElectionDetails />}
           ></Route>
-          <Route exact path="*" element={<ErrorPage />}></Route>
+          <Route exact path="/nomask" element={<ErrorPage />}></Route>
+          <Route exact path="*" element={<PageNotFound />}></Route>
         </Routes>
       </Router>
     </UserProvider>

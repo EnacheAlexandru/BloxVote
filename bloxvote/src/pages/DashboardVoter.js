@@ -146,7 +146,48 @@ export default function DashboardVoter() {
 
   const { user, setUser } = useContext(UserContext);
 
-  const navigateToElectionDetails = useNavigate();
+  const navigateTo = useNavigate();
+
+  const checkMetaMask = async () => {
+    if (typeof window.ethereum === "undefined") {
+      navigateTo("/nomask");
+      return;
+    }
+
+    let accounts;
+    try {
+      accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+    } catch (error) {
+      navigateTo("/nomask");
+      return;
+    }
+
+    if (!accounts || accounts.length === 0) {
+      navigateTo("/nomask");
+      return;
+    }
+    setUser((state) => ({ ...state, address: accounts[0] }));
+
+    if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
+      navigateTo("/admin");
+      return;
+    }
+
+    window.ethereum.on("accountsChanged", (accounts) => {
+      if (!accounts || accounts.length === 0) {
+        navigateTo("/nomask");
+        return;
+      }
+      setUser((state) => ({ ...state, address: accounts[0] }));
+
+      if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
+        navigateTo("/admin");
+        return;
+      }
+    });
+  };
 
   useEffect(() => {
     stateDispatch({
@@ -157,6 +198,8 @@ export default function DashboardVoter() {
   }, [state.elections]);
 
   useEffect(() => {
+    checkMetaMask();
+
     let fetchedElections = [
       new ElectionDTO(
         1,
@@ -406,9 +449,7 @@ export default function DashboardVoter() {
 
       <ElectionList
         elections={state.paginatedElections}
-        onClick={(electionID) =>
-          navigateToElectionDetails(`/election/${electionID}`)
-        }
+        onClick={(electionID) => navigateTo(`/election/${electionID}`)}
       ></ElectionList>
 
       <div className="page-buttons">

@@ -15,6 +15,7 @@ import { UserContext } from "../context/UserContext";
 import CandidateListNoVote from "../components/CandidateListNoVote";
 import { ElectionDetailsAdmin } from "../domain/ElectionDetailsAdmin";
 import { ElectionDetailsDTO } from "../dto/ElectionDetailsDTO";
+import { useNavigate } from "react-router-dom";
 
 const ACTIONS = {
   SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
@@ -47,10 +48,54 @@ export default function AdminElectionDetails() {
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
   const { user, setUser } = useContext(UserContext);
+  const navigateTo = useNavigate();
 
   const [voterAddressToRegister, setVoterAddressToRegister] = useState("");
 
+  const checkMetaMask = async () => {
+    if (typeof window.ethereum === "undefined") {
+      navigateTo("/nomask");
+      return;
+    }
+
+    let accounts;
+    try {
+      accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+    } catch (error) {
+      navigateTo("/nomask");
+      return;
+    }
+
+    if (!accounts || accounts.length === 0) {
+      navigateTo("/nomask");
+      return;
+    }
+    setUser((state) => ({ ...state, address: accounts[0] }));
+
+    if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+      navigateTo("/");
+      return;
+    }
+
+    window.ethereum.on("accountsChanged", (accounts) => {
+      if (!accounts || accounts.length === 0) {
+        navigateTo("/nomask");
+        return;
+      }
+      setUser((state) => ({ ...state, address: accounts[0] }));
+
+      if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+        navigateTo("/");
+        return;
+      }
+    });
+  };
+
   useEffect(() => {
+    checkMetaMask();
+
     window.scrollTo(0, 0);
 
     const fetchedElection = new ElectionDetailsDTO(
