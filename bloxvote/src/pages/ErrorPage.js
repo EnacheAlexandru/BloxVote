@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { UserContext } from "../context/UserContext";
+import { contractAdmin } from "../utils/utils";
 
 export default function ErrorPage() {
   const { user, setUser } = useContext(UserContext);
@@ -29,23 +30,19 @@ export default function ErrorPage() {
     }
     setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
+    if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
       navigateTo("/admin");
       return;
     }
 
-    window.ethereum.on("accountsChanged", (accounts) => {
-      if (!accounts || accounts.length === 0) {
-        navigateTo("/nomask");
-        return;
-      }
-      setUser((state) => ({ ...state, address: accounts[0] }));
-
-      if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
+    if (window.ethereum.isConnected()) {
+      if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
         navigateTo("/admin");
         return;
       }
-    });
+      navigateTo("/");
+      return;
+    }
   };
 
   useEffect(() => {
@@ -73,8 +70,15 @@ export default function ErrorPage() {
         >
           We're sorry!
         </div>
-        <div className="default-text size-large color3">
-          Please make sure that MetaMask is installed and you are logged in.
+        <div
+          className="default-text size-large color3"
+          style={{ marginBottom: "2%" }}
+        >
+          Please make sure that MetaMask is installed on your browser and logged
+          in.
+        </div>
+        <div className="default-text size-small color1">
+          After that, reload the page.
         </div>
       </div>
 

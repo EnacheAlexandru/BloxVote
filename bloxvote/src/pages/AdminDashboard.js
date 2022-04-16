@@ -3,7 +3,7 @@ import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
 import CustomTextField from "../components/CustomTextField";
-import { computeElectionStatus } from "../utils/utils";
+import { computeElectionStatus, contractAdmin } from "../utils/utils";
 import "../utils/global.css";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
     }
     setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+    if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
       navigateTo("/");
       return;
     }
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
       }
       setUser((state) => ({ ...state, address: accounts[0] }));
 
-      if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+      if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
         navigateTo("/");
         return;
       }

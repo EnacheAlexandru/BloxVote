@@ -12,6 +12,7 @@ import { Candidate } from "../domain/Candidate";
 import AddCandidateList from "../components/AddCandidateList";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
+import { contractAdmin } from "../utils/utils";
 
 const ACTIONS = {
   ADD_CANDIDATE: "ADD_CANDIDATE",
@@ -101,7 +102,7 @@ export default function AdminAddElection() {
     }
     setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+    if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
       navigateTo("/");
       return;
     }
@@ -113,7 +114,7 @@ export default function AdminAddElection() {
       }
       setUser((state) => ({ ...state, address: accounts[0] }));
 
-      if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+      if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
         navigateTo("/");
         return;
       }
@@ -125,21 +126,6 @@ export default function AdminAddElection() {
 
     window.scrollTo(0, 0);
   }, []);
-
-  useEffect(() => {
-    // if (startDateElection) {
-    //   let tomorrowAfterStartDateElection = new Date(startDateElection);
-    //   tomorrowAfterStartDateElection.setDate(
-    //     tomorrowAfterStartDateElection.getDate() + 1
-    //   );
-    //   setEndDateMinElection(tomorrowAfterStartDateElection);
-    //   if (endDateElection) {
-    //     if (startDateElection >= endDateElection) {
-    //       setEndDateElection(null);
-    //     }
-    //   }
-    // }
-  }, [startDateElection]);
 
   let titleElectionError;
   if (!titleElection) {

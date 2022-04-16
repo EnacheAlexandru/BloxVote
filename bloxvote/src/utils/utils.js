@@ -1,3 +1,8 @@
+import Vote from "contracts/Vote.json";
+
+export const contractAddress = Vote.networks["5777"].address;
+export const contractAdmin = "0x437AB99F50b9DF595Ef2A7a6ccD52AF48cABA1d7";
+
 export const ElectionStatus = {
   NOT_STARTED: "NOT_STARTED",
   OPEN: "OPEN",
@@ -50,7 +55,7 @@ export function computeVoterStatus(electionID, votes) {
   if (!votes.hasOwnProperty(electionID)) {
     return VoterStatus.NOT_REGISTERED;
   }
-  if (votes[electionID] === "0") {
+  if (votes[electionID] == 0) {
     return VoterStatus.NOT_VOTED;
   }
   return VoterStatus.VOTED;

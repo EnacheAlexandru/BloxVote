@@ -1,0 +1,95 @@
+truffle compile
+truffle migrate --reset
+
+truffle console
+
+truffle test ./test/VoteTest.js
+
+vote = await Vote.deployed()
+await vote.addElection("Vote for your mayor", "The next 4 years will be important for our city! Your vote is very important for our future!", 1649970000, 1650103200, [["John Manner", "I want to make more parks!"], ["Umbert Gothium", "I want to make a new hospital and a new mall for my lovely citizens!"], ["Cassandra Biggiy", "I want to build an airport!"]])
+
+await vote.addElection("aa", "bb", 1649970000, 1650142800, [["gg", "wp"], ["gl", "hf"]])
+await vote.addElection("cc", "dd", 1549970000, 1550142800, [["omg", "wtf"], ["fyi", "omfg"]])
+await vote.addElection("ee", "ff", 1749970000, 1750142800, [["alpha", "beta"], ["omega", "epsilon"]])
+
+await vote.registerVoter("0x60948741C82EB9680c35ec91A2140483B818dD07", 1)
+
+[
+  [
+    '1',
+    'aa',
+    'bb',
+    '1679611243683',
+    '1689611243683',
+    [ '1', '2' ],
+    id: '1',
+    title: 'aa',
+    description: 'bb',
+    startDate: '1679611243683',
+    endDate: '1689611243683',
+    candidatesIDs: [ '1', '2' ]
+  ]
+]
+
+const mockFetchedElections = [
+  new ElectionDTO(
+    1,
+    "Vote for your mayor",
+    Math.floor(new Date(2022, 3, 25).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 3, 27).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    2,
+    "Vote for your president 2022",
+    Math.floor(new Date(2022, 3, 5).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 3, 7).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    3,
+    "Vote for the new law",
+    Math.floor(new Date(2022, 3, 10).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 3, 17).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    4,
+    "Vote for your president 4018",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    5,
+    "Vote for your president 5010",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    6,
+    "Vote for your president 6011",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    7,
+    "Vote for your president 7012",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    8,
+    "Vote for your president 8013",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    9,
+    "Vote for your president 9013",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+  new ElectionDTO(
+    10,
+    "Vote for your president 10013",
+    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
+    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+  ),
+];

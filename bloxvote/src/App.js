@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import { UserProvider } from "./context/UserContext";
 import AdminAddElection from "./pages/AdminAddElection";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -11,6 +12,7 @@ import PageNotFound from "./pages/PageNotFound";
 export default function App() {
   return (
     <UserProvider>
+      <ToastContainer></ToastContainer>
       <Router>
         <Routes>
           <Route exact path="/" element={<DashboardVoter />}></Route>

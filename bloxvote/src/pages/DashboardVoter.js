@@ -1,16 +1,25 @@
-import React, { useReducer, useEffect, useContext } from "react";
+import React, { useReducer, useEffect, useContext, useState } from "react";
 import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
 import CustomTextField from "../components/CustomTextField";
 import { Election } from "../domain/Election";
-import { computeElectionStatus, computeVoterStatus } from "../utils/utils";
+import {
+  computeElectionStatus,
+  computeVoterStatus,
+  contractAddress,
+  contractAdmin,
+} from "../utils/utils";
 import "../utils/global.css";
 import ElectionList from "../components/ElectionList";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
-import { ElectionDTO } from "../dto/ElectionDTO";
+import { ethers } from "ethers";
+import Vote from "contracts/Vote.json";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -144,50 +153,13 @@ export default function DashboardVoter() {
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
+  const [isMetaMaskChecked, setIsMetaMaskChecked] = useState(false);
+  const [isVoterLoaded, setIsVoterLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
   const { user, setUser } = useContext(UserContext);
 
   const navigateTo = useNavigate();
-
-  const checkMetaMask = async () => {
-    if (typeof window.ethereum === "undefined") {
-      navigateTo("/nomask");
-      return;
-    }
-
-    let accounts;
-    try {
-      accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-    } catch (error) {
-      navigateTo("/nomask");
-      return;
-    }
-
-    if (!accounts || accounts.length === 0) {
-      navigateTo("/nomask");
-      return;
-    }
-    setUser((state) => ({ ...state, address: accounts[0] }));
-
-    if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
-      navigateTo("/admin");
-      return;
-    }
-
-    window.ethereum.on("accountsChanged", (accounts) => {
-      if (!accounts || accounts.length === 0) {
-        navigateTo("/nomask");
-        return;
-      }
-      setUser((state) => ({ ...state, address: accounts[0] }));
-
-      if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
-        navigateTo("/admin");
-        return;
-      }
-    });
-  };
 
   useEffect(() => {
     stateDispatch({
@@ -198,89 +170,127 @@ export default function DashboardVoter() {
   }, [state.elections]);
 
   useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window.ethereum === "undefined") {
+        navigateTo("/nomask");
+        return;
+      }
+
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+      } catch {
+        navigateTo("/nomask");
+        return;
+      }
+
+      if (!accounts || accounts.length === 0) {
+        navigateTo("/nomask");
+        return;
+      }
+      setUser((state) => ({ ...state, address: accounts[0] }));
+
+      if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
+        navigateTo("/admin");
+        return;
+      }
+
+      window.ethereum.on("accountsChanged", (accounts) => {
+        window.location.reload();
+      });
+
+      setIsMetaMaskChecked(true);
+    };
+
     checkMetaMask();
-
-    let fetchedElections = [
-      new ElectionDTO(
-        1,
-        "Vote for your mayor",
-        Math.floor(new Date(2022, 3, 25).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 3, 27).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        2,
-        "Vote for your president 2022",
-        Math.floor(new Date(2022, 3, 5).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 3, 7).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        3,
-        "Vote for the new law",
-        Math.floor(new Date(2022, 3, 10).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 3, 17).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        4,
-        "Vote for your president 4018",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        5,
-        "Vote for your president 5010",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        6,
-        "Vote for your president 6011",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        7,
-        "Vote for your president 7012",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        8,
-        "Vote for your president 8013",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        9,
-        "Vote for your president 9013",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        10,
-        "Vote for your president 10013",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-    ];
-
-    const elections = fetchedElections
-      .map((election) => {
-        return new Election(
-          election.id,
-          election.title,
-          election.dateStart,
-          election.dateEnd,
-          computeElectionStatus(election.dateStart, election.dateEnd),
-          computeVoterStatus(election.id, user.votes)
-        );
-      })
-      .sort((a, b) => b.dateStart - a.dateStart);
-
-    stateDispatch({
-      type: ACTIONS.FETCH_ELECTIONS,
-      payload: elections,
-    });
   }, []);
+
+  useEffect(() => {
+    if (!isMetaMaskChecked) {
+      return;
+    }
+
+    const fetchVoter = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
+
+      let fetchedVotes;
+      try {
+        fetchedVotes = await contract.getVoter({ from: user.address });
+      } catch {
+        console.log("Error fetching voter");
+        return;
+      }
+
+      const votes = {};
+      fetchedVotes.forEach((vote) => {
+        votes[vote["electionID"].toNumber()] = vote["candidateID"].toNumber();
+      });
+
+      setUser((state) => ({ ...state, votes: votes }));
+
+      setIsVoterLoaded(true);
+    };
+
+    fetchVoter();
+  }, [isMetaMaskChecked]);
+
+  useEffect(() => {
+    if (!isVoterLoaded) {
+      return;
+    }
+
+    const fetchElections = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
+
+      let fetchedElections;
+      try {
+        fetchedElections = await contract.getElections();
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+      } catch {
+        toast.error("Error fetching data. Please reload.", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        console.log("Error fetching elections");
+        return;
+      }
+
+      const elections = fetchedElections
+        .map((election) => {
+          const fetchedStartDate =
+            new Date(election["startDate"].toNumber()) * 1000;
+          const fetchedEndDate =
+            new Date(election["endDate"].toNumber()) * 1000;
+          return new Election(
+            election["id"].toNumber(),
+            election["title"],
+            fetchedStartDate,
+            fetchedEndDate,
+            computeElectionStatus(fetchedStartDate, fetchedEndDate),
+            computeVoterStatus(election["id"].toNumber(), user.votes)
+          );
+        })
+        .sort((a, b) => b.dateStart - a.dateStart);
+
+      stateDispatch({
+        type: ACTIONS.FETCH_ELECTIONS,
+        payload: elections,
+      });
+
+      setIsLoading(false);
+    };
+
+    fetchElections();
+  }, [isVoterLoaded]);
 
   let backPageButton;
   if (state.currentPage > 1) {
@@ -358,6 +368,24 @@ export default function DashboardVoter() {
         style={{ margin: "1%", textAlign: "center" }}
       >
         No elections
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+        }}
+      >
+        <ClimbingBoxLoader
+          color={"#00458b"}
+          loading={isLoading}
+          size={25}
+        ></ClimbingBoxLoader>
       </div>
     );
   }

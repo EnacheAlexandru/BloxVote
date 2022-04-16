@@ -67,8 +67,8 @@ contract Vote {
         return elections[_electionID - 1];
     }
 
-    function getVoterByAddress(address _voter) external view returns (ElectionToCandidate[] memory) {
-        return voters[_voter];
+    function getVoter() external view returns (ElectionToCandidate[] memory) {
+        return voters[msg.sender];
     }
 
     function getCandidatesByElectionID(uint256 _electionID) external view electionExists(_electionID) returns(Candidate[] memory) {
@@ -85,8 +85,8 @@ contract Vote {
         require(bytes(_title).length >= 1 && bytes(_title).length <= 75, "Invalid election title");
         require(bytes(_description).length >= 1 && bytes(_description).length <= 300, "Invalid election description");
 
-        require(_startDate >= block.timestamp + 1 days, "Invalid start date");
-        require(_endDate >= _startDate + 1 days, "End and start dates should be more than one day apart");
+        //require(_startDate >= block.timestamp + 1 days, "Invalid start date");
+        //require(_endDate >= _startDate + 1 days, "End and start dates should be more than one day apart");
         
         require(_candidatesToAdd.length >= 2 && _candidatesToAdd.length <= 10, "Invalid number of candidates");
 
@@ -118,8 +118,8 @@ contract Vote {
         voters[_voter].push(ElectionToCandidate(_electionID, 0));
     }
 
-    function vote(address _voter, uint256 _electionID, uint256 _candidateID) external electionExists(_electionID) candidateExists(_candidateID) {
-        require(_voter != admin, "Administrator not allowed to vote");
+    function vote(uint256 _electionID, uint256 _candidateID) external electionExists(_electionID) candidateExists(_candidateID) {
+        require(msg.sender != admin, "Administrator not allowed to vote");
 
         require(block.timestamp >= elections[_electionID - 1].startDate, "Election not open");
         require(block.timestamp <= elections[_electionID - 1].endDate, "Election ended");
@@ -133,10 +133,10 @@ contract Vote {
         }
         require(isCandidateInElection, "Candidate not in election");
 
-        for (uint256 i = 0; i < voters[_voter].length; i++) {
-            if (voters[_voter][i].electionID == _electionID) {
-                if (voters[_voter][i].candidateID == 0) {
-                    voters[_voter][i].candidateID = _candidateID;
+        for (uint256 i = 0; i < voters[msg.sender].length; i++) {
+            if (voters[msg.sender][i].electionID == _electionID) {
+                if (voters[msg.sender][i].candidateID == 0) {
+                    voters[msg.sender][i].candidateID = _candidateID;
                     emit NewVote(_candidateID);
                     return;
                 } else {

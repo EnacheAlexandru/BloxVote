@@ -2,10 +2,10 @@ import React, { useReducer, useEffect, useState, useContext } from "react";
 import "./election_details_voter.css";
 import "../utils/global.css";
 import logo from "../assets/logo.svg";
-import { ElectionDetails } from "../domain/ElectionDetails";
 import { Candidate } from "../domain/Candidate";
 import {
   computeElectionStatus,
+  contractAdmin,
   dateToString,
   ElectionStatus,
 } from "../utils/utils";
@@ -74,7 +74,7 @@ export default function AdminElectionDetails() {
     }
     setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+    if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
       navigateTo("/");
       return;
     }
@@ -86,7 +86,7 @@ export default function AdminElectionDetails() {
       }
       setUser((state) => ({ ...state, address: accounts[0] }));
 
-      if (accounts[0].toLowerCase() !== user.contractAdmin.toLowerCase()) {
+      if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
         navigateTo("/");
         return;
       }
@@ -103,7 +103,7 @@ export default function AdminElectionDetails() {
       "Vote for your mayor",
       "The next 4 years will be important for our city! Your vote is very important for our future!",
       Math.floor(new Date(2022, 3, 13).getTime() / 1000) * 1000,
-      Math.floor(new Date(2022, 3, 16).getTime() / 1000) * 1000,
+      Math.floor(new Date(2022, 3, 19).getTime() / 1000) * 1000,
       [1, 2, 3]
     );
 
@@ -176,26 +176,16 @@ export default function AdminElectionDetails() {
     );
   }
 
+  let registerVoterForm;
   let voterAddressToRegisterError;
-  if (!/^0x[0-9A-Fa-f]{40}$/.test(voterAddressToRegister)) {
-    voterAddressToRegisterError = (
-      <div className="default-text size-smaller red">Invalid format</div>
-    );
-  }
+  if (state.election.electionStatus !== ElectionStatus.ENDED) {
+    if (!/^0x[0-9A-Fa-f]{40}$/.test(voterAddressToRegister)) {
+      voterAddressToRegisterError = (
+        <div className="default-text size-smaller red">Invalid format</div>
+      );
+    }
 
-  return (
-    <div className="all-page-wrapper">
-      <div className="header">
-        <div>
-          <img className="logo-size" src={logo} alt="logo"></img>
-        </div>
-
-        <div className="default-text size-smaller color3">
-          <div style={{ textAlign: "right" }}>Logged in as:</div>
-          <div>{user.address}</div>
-        </div>
-      </div>
-
+    registerVoterForm = (
       <div className="register-voter">
         <div className="default-text size-larger color3">Register voter</div>
         <div
@@ -233,6 +223,23 @@ export default function AdminElectionDetails() {
           </CustomButton>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="all-page-wrapper">
+      <div className="header">
+        <div>
+          <img className="logo-size" src={logo} alt="logo"></img>
+        </div>
+
+        <div className="default-text size-smaller color3">
+          <div style={{ textAlign: "right" }}>Logged in as:</div>
+          <div>{user.address}</div>
+        </div>
+      </div>
+
+      {registerVoterForm}
 
       <div style={{ textAlign: "center" }}>{electionStatusButton}</div>
 

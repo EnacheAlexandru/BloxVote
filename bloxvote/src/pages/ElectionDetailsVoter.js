@@ -7,6 +7,7 @@ import { Candidate } from "../domain/Candidate";
 import {
   computeElectionStatus,
   computeVoterStatus,
+  contractAdmin,
   dateToString,
   ElectionStatus,
   VoterStatus,
@@ -72,7 +73,7 @@ export default function ElectionDetailsVoter() {
     }
     setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
+    if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
       navigateTo("/admin");
       return;
     }
@@ -84,7 +85,7 @@ export default function ElectionDetailsVoter() {
       }
       setUser((state) => ({ ...state, address: accounts[0] }));
 
-      if (accounts[0].toLowerCase() === user.contractAdmin.toLowerCase()) {
+      if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
         navigateTo("/admin");
         return;
       }
