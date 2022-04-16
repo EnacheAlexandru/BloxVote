@@ -12,11 +12,17 @@ import { Candidate } from "../domain/Candidate";
 import AddCandidateList from "../components/AddCandidateList";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
-import { contractAdmin } from "../utils/utils";
+import { contractAddress, contractAdmin } from "../utils/utils";
+import { ethers } from "ethers";
+import Vote from "contracts/Vote.json";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 
 const ACTIONS = {
   ADD_CANDIDATE: "ADD_CANDIDATE",
   DELETE_CANDIDATE: "DELETE_CANDIDATE",
+  CLEAR_CANDIDATES: "CLEAR_CANDIDATES",
 };
 
 const today = new Date();
@@ -61,6 +67,12 @@ export default function AdminAddElection() {
           ),
         };
       }
+      case ACTIONS.CLEAR_CANDIDATES: {
+        return {
+          ...state,
+          candidatesToBeAdded: [],
+        };
+      }
     }
   };
 
@@ -77,37 +89,31 @@ export default function AdminAddElection() {
   const [endDateElection, setEndDateElection] = useState(null);
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingConfirmation, setIsLoadingConfirmation] = useState(false);
+
   const { user, setUser } = useContext(UserContext);
   const navigateTo = useNavigate();
 
-  const checkMetaMask = async () => {
-    if (typeof window.ethereum === "undefined") {
-      navigateTo("/nomask");
-      return;
-    }
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window.ethereum === "undefined") {
+        navigateTo("/nomask");
+        return;
+      }
 
-    let accounts;
-    try {
-      accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-    } catch (error) {
-      navigateTo("/nomask");
-      return;
-    }
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        navigateTo("/nomask");
+        return;
+      }
 
-    if (!accounts || accounts.length === 0) {
-      navigateTo("/nomask");
-      return;
-    }
-    setUser((state) => ({ ...state, address: accounts[0] }));
-
-    if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
-      navigateTo("/");
-      return;
-    }
-
-    window.ethereum.on("accountsChanged", (accounts) => {
       if (!accounts || accounts.length === 0) {
         navigateTo("/nomask");
         return;
@@ -118,14 +124,85 @@ export default function AdminAddElection() {
         navigateTo("/");
         return;
       }
+
+      window.ethereum.on("accountsChanged", (accounts) => {
+        window.location.reload();
+      });
+
+      setIsLoading(false);
+    };
+
+    checkMetaMask();
+  }, []);
+
+  const clearFields = () => {
+    setTitleElection("");
+    setDescriptionElection("");
+    setStartDateElection(null);
+    setEndDateElection(null);
+    setNameCandidate("");
+    setDescriptionCandidate("");
+    stateDispatch({
+      type: ACTIONS.CLEAR_CANDIDATES,
     });
   };
 
-  useEffect(() => {
-    checkMetaMask();
+  const requestAddElection = async () => {
+    setIsLoadingConfirmation(true);
 
-    window.scrollTo(0, 0);
-  }, []);
+    const dateStartToBeSent = Math.floor(
+      new Date(startDateElection).getTime() / 1000
+    );
+    const dateEndToBeSent = Math.floor(
+      new Date(endDateElection).getTime() / 1000
+    );
+    const candidatesToBeSent = state.candidatesToBeAdded.map((candidate) => {
+      return [candidate.name, candidate.description];
+    });
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(contractAddress, Vote.abi, signer);
+
+    try {
+      const transaction = await contract.addElection(
+        titleElection,
+        descriptionElection,
+        dateStartToBeSent,
+        dateEndToBeSent,
+        candidatesToBeSent
+      );
+      await transaction.wait();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch {
+      toast.error("Error processing data. Please try again.", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      console.log("Error adding election");
+      setIsLoadingConfirmation(false);
+      return;
+    }
+
+    toast.success("Election added successfully!", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+
+    clearFields();
+
+    setIsLoadingConfirmation(false);
+  };
 
   let titleElectionError;
   if (!titleElection) {
@@ -163,7 +240,7 @@ export default function AdminAddElection() {
   ) {
     startAndEndDatesTooCloseError = (
       <span className="default-text size-smaller red">
-        Start and end dates should be at least one day apart
+        End date should be at least one day after start date
       </span>
     );
   }
@@ -219,15 +296,63 @@ export default function AdminAddElection() {
     );
   }
 
-  // if (!state.voter) {
-  //   return <div>Loading...</div>;
-  // }
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+          gap: "3%",
+        }}
+      >
+        <ClimbingBoxLoader
+          color={"#00458b"}
+          loading={isLoading}
+          size={25}
+        ></ClimbingBoxLoader>
+      </div>
+    );
+  }
+
+  if (isLoadingConfirmation) {
+    return (
+      <div>
+        <div
+          style={{
+            height: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            gap: "3%",
+          }}
+        >
+          <ClimbingBoxLoader
+            color={"#00458b"}
+            loading={isLoadingConfirmation}
+            size={25}
+          ></ClimbingBoxLoader>
+          <div className="default-text size-smaller color3">
+            Please confirm your request in the pop-up window.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="all-page-wrapper">
       <div className="header">
-        <div>
-          <img className="logo-size" src={logo} alt="logo"></img>
+        <div className="cursor-pointer">
+          <img
+            className="logo-size"
+            src={logo}
+            alt="logo"
+            onClick={() => navigateTo("/admin")}
+          ></img>
         </div>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>
@@ -404,10 +529,10 @@ export default function AdminAddElection() {
                 !descriptionElectionError &&
                 !startDateElectionError &&
                 !endDateElectionError &&
-                !lessThanTwoCandidatesError
+                !lessThanTwoCandidatesError &&
+                !startAndEndDatesTooCloseError
               ) {
-                console.log("add election");
-                window.location.reload();
+                requestAddElection();
               }
             }}
           >

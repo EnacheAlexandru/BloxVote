@@ -1,16 +1,24 @@
-import React, { useReducer, useEffect, useContext } from "react";
+import React, { useReducer, useEffect, useContext, useState } from "react";
 import CustomButton from "../components/CustomButton";
 import logo from "../assets/logo.svg";
 import "./dashboard_voter.css";
 import CustomTextField from "../components/CustomTextField";
-import { computeElectionStatus, contractAdmin } from "../utils/utils";
+import {
+  computeElectionStatus,
+  contractAddress,
+  contractAdmin,
+} from "../utils/utils";
 import "../utils/global.css";
 import CustomButtonStatus from "../components/CustomButtonStatus";
 import { useNavigate } from "react-router-dom";
 import ElectionListOnlyElectionStatus from "../components/ElectionListOnlyElectionStatus";
 import { UserContext } from "../context/UserContext";
 import { ElectionAdmin } from "../domain/ElectionAdmin";
-import { ElectionDTO } from "../dto/ElectionDTO";
+import { ethers } from "ethers";
+import Vote from "contracts/Vote.json";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 
 const ACTIONS = {
   PREVIOUS_PAGE: "PREVIOUS_PAGE",
@@ -26,17 +34,17 @@ const ACTIONS = {
 
 const itemsPerPage = 4;
 
-export default function AdminDashboard() {
-  const computeNumberPages = (list) => {
-    let numberPages;
-    if (list.length % itemsPerPage !== 0) {
-      numberPages = Math.floor(list.length / itemsPerPage) + 1;
-    } else {
-      numberPages = Math.floor(list.length / itemsPerPage);
-    }
-    return numberPages;
-  };
+const computeNumberPages = (list) => {
+  let numberPages;
+  if (list.length % itemsPerPage !== 0) {
+    numberPages = Math.floor(list.length / itemsPerPage) + 1;
+  } else {
+    numberPages = Math.floor(list.length / itemsPerPage);
+  }
+  return numberPages;
+};
 
+export default function AdminDashboard() {
   const stateReducer = (state, action) => {
     switch (action.type) {
       case ACTIONS.PREVIOUS_PAGE:
@@ -144,37 +152,29 @@ export default function AdminDashboard() {
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
 
+  const [isMetaMaskChecked, setIsMetaMaskChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
   const { user, setUser } = useContext(UserContext);
   const navigateTo = useNavigate();
 
-  const checkMetaMask = async () => {
-    if (typeof window.ethereum === "undefined") {
-      navigateTo("/nomask");
-      return;
-    }
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window.ethereum === "undefined") {
+        navigateTo("/nomask");
+        return;
+      }
 
-    let accounts;
-    try {
-      accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-    } catch (error) {
-      navigateTo("/nomask");
-      return;
-    }
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+      } catch (error) {
+        navigateTo("/nomask");
+        return;
+      }
 
-    if (!accounts || accounts.length === 0) {
-      navigateTo("/nomask");
-      return;
-    }
-    setUser((state) => ({ ...state, address: accounts[0] }));
-
-    if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
-      navigateTo("/");
-      return;
-    }
-
-    window.ethereum.on("accountsChanged", (accounts) => {
       if (!accounts || accounts.length === 0) {
         navigateTo("/nomask");
         return;
@@ -185,8 +185,70 @@ export default function AdminDashboard() {
         navigateTo("/");
         return;
       }
-    });
-  };
+
+      window.ethereum.on("accountsChanged", (accounts) => {
+        window.location.reload();
+      });
+
+      setIsMetaMaskChecked(true);
+    };
+
+    checkMetaMask();
+  }, []);
+
+  useEffect(() => {
+    if (!isMetaMaskChecked) {
+      return;
+    }
+
+    const fetchElections = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
+
+      let fetchedElections;
+      try {
+        fetchedElections = await contract.getElections();
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch {
+        toast.error("Error fetching data. Please reload.", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        console.log("Error fetching elections");
+        return;
+      }
+
+      const elections = fetchedElections
+        .map((election) => {
+          const fetchedStartDate =
+            new Date(election["startDate"].toNumber()) * 1000;
+          const fetchedEndDate =
+            new Date(election["endDate"].toNumber()) * 1000;
+          return new ElectionAdmin(
+            election["id"].toNumber(),
+            election["title"],
+            fetchedStartDate,
+            fetchedEndDate,
+            computeElectionStatus(fetchedStartDate, fetchedEndDate)
+          );
+        })
+        .sort((a, b) => b.dateStart - a.dateStart);
+
+      stateDispatch({
+        type: ACTIONS.FETCH_ELECTIONS,
+        payload: elections,
+      });
+
+      setIsLoading(false);
+    };
+
+    fetchElections();
+  }, [isMetaMaskChecked]);
 
   useEffect(() => {
     stateDispatch({
@@ -195,90 +257,6 @@ export default function AdminDashboard() {
     });
     stateDispatch({ type: ACTIONS.UPDATE_PAGINATED_ELECTIONS });
   }, [state.elections]);
-
-  useEffect(() => {
-    checkMetaMask();
-
-    let fetchedElections = [
-      new ElectionDTO(
-        1,
-        "Vote for your mayor",
-        Math.floor(new Date(2022, 3, 25).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 3, 27).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        2,
-        "Vote for your president 2022",
-        Math.floor(new Date(2022, 3, 5).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 3, 7).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        3,
-        "Vote for the new law",
-        Math.floor(new Date(2022, 3, 10).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 3, 17).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        4,
-        "Vote for your president 4018",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        5,
-        "Vote for your president 5010",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        6,
-        "Vote for your president 6011",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        7,
-        "Vote for your president 7012",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        8,
-        "Vote for your president 8013",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        9,
-        "Vote for your president 9013",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-      new ElectionDTO(
-        10,
-        "Vote for your president 10013",
-        Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-        Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-      ),
-    ];
-
-    const elections = fetchedElections
-      .map((election) => {
-        return new ElectionAdmin(
-          election.id,
-          election.title,
-          election.dateStart,
-          election.dateEnd,
-          computeElectionStatus(election.dateStart, election.dateEnd)
-        );
-      })
-      .sort((a, b) => b.dateStart - a.dateStart);
-
-    stateDispatch({
-      type: ACTIONS.FETCH_ELECTIONS,
-      payload: elections,
-    });
-  }, []);
 
   let backPageButton;
   if (state.currentPage > 1) {
@@ -356,6 +334,24 @@ export default function AdminDashboard() {
         style={{ margin: "1%", textAlign: "center" }}
       >
         No elections
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+        }}
+      >
+        <ClimbingBoxLoader
+          color={"#00458b"}
+          loading={isLoading}
+          size={25}
+        ></ClimbingBoxLoader>
       </div>
     );
   }

@@ -22,6 +22,10 @@
   letter-spacing: 0.01em;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 .size-smaller {
   font-size: 15px;
 }

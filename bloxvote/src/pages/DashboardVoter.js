@@ -158,16 +158,7 @@ export default function DashboardVoter() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user, setUser } = useContext(UserContext);
-
   const navigateTo = useNavigate();
-
-  useEffect(() => {
-    stateDispatch({
-      type: ACTIONS.SET_NUMBER_PAGES,
-      payload: computeNumberPages(state.elections),
-    });
-    stateDispatch({ type: ACTIONS.UPDATE_PAGINATED_ELECTIONS });
-  }, [state.elections]);
 
   useEffect(() => {
     const checkMetaMask = async () => {
@@ -249,7 +240,7 @@ export default function DashboardVoter() {
       let fetchedElections;
       try {
         fetchedElections = await contract.getElections();
-        await new Promise((resolve) => setTimeout(resolve, 4000));
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // simulate
       } catch {
         toast.error("Error fetching data. Please reload.", {
           position: "bottom-right",
@@ -291,6 +282,14 @@ export default function DashboardVoter() {
 
     fetchElections();
   }, [isVoterLoaded]);
+
+  useEffect(() => {
+    stateDispatch({
+      type: ACTIONS.SET_NUMBER_PAGES,
+      payload: computeNumberPages(state.elections),
+    });
+    stateDispatch({ type: ACTIONS.UPDATE_PAGINATED_ELECTIONS });
+  }, [state.elections]);
 
   let backPageButton;
   if (state.currentPage > 1) {
