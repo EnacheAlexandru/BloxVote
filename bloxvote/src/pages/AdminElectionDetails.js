@@ -5,6 +5,7 @@ import logo from "../assets/logo.svg";
 import { Candidate } from "../domain/Candidate";
 import {
   computeElectionStatus,
+  contractAddress,
   contractAdmin,
   dateToString,
   ElectionStatus,
@@ -14,28 +15,31 @@ import CustomButton from "../components/CustomButton";
 import { UserContext } from "../context/UserContext";
 import CandidateListNoVote from "../components/CandidateListNoVote";
 import { ElectionDetailsAdmin } from "../domain/ElectionDetailsAdmin";
-import { ElectionDetailsDTO } from "../dto/ElectionDetailsDTO";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { ethers } from "ethers";
+import Vote from "contracts/Vote.json";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 
 const ACTIONS = {
-  SET_TOTAL_VOTES: "SET_TOTAL_VOTES",
-  ACTIONS_INIT: "ACTIONS_INIT",
+  SET_CANDIDATES_TOTAL_VOTES: "SET_CANDIDATES_TOTAL_VOTES",
+  SET_ELECTION: "SET_ELECTION",
 };
 
 export default function AdminElectionDetails() {
   const stateReducer = (state, action) => {
     switch (action.type) {
-      case ACTIONS.INIT:
+      case ACTIONS.SET_CANDIDATES_TOTAL_VOTES:
         return {
           ...state,
-          election: action.payload.fetchedElection,
-          candidates: action.payload.fetchedCandidates,
+          candidates: action.payload.candidates,
           totalVotes: action.payload.totalVotes,
         };
-      case ACTIONS.SET_TOTAL_VOTES:
+      case ACTIONS.SET_ELECTION:
         return {
           ...state,
-          totalVotes: action.payload,
+          election: action.payload,
         };
     }
   };
@@ -47,39 +51,35 @@ export default function AdminElectionDetails() {
   };
 
   const [state, stateDispatch] = useReducer(stateReducer, initialState);
+
+  const [isMetaMaskChecked, setIsMetaMaskChecked] = useState(false);
+  const [isElectionLoaded, setIsElectionLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingConfirmation, setIsLoadingConfirmation] = useState(false);
+
   const { user, setUser } = useContext(UserContext);
   const navigateTo = useNavigate();
+  const { electionID } = useParams();
 
   const [voterAddressToRegister, setVoterAddressToRegister] = useState("");
 
-  const checkMetaMask = async () => {
-    if (typeof window.ethereum === "undefined") {
-      navigateTo("/nomask");
-      return;
-    }
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window.ethereum === "undefined") {
+        navigateTo("/nomask");
+        return;
+      }
 
-    let accounts;
-    try {
-      accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-    } catch (error) {
-      navigateTo("/nomask");
-      return;
-    }
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+      } catch (error) {
+        navigateTo("/nomask");
+        return;
+      }
 
-    if (!accounts || accounts.length === 0) {
-      navigateTo("/nomask");
-      return;
-    }
-    setUser((state) => ({ ...state, address: accounts[0] }));
-
-    if (accounts[0].toLowerCase() !== contractAdmin.toLowerCase()) {
-      navigateTo("/");
-      return;
-    }
-
-    window.ethereum.on("accountsChanged", (accounts) => {
       if (!accounts || accounts.length === 0) {
         navigateTo("/nomask");
         return;
@@ -90,60 +90,210 @@ export default function AdminElectionDetails() {
         navigateTo("/");
         return;
       }
-    });
-  };
 
-  useEffect(() => {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        window.location.reload();
+      });
+
+      setIsMetaMaskChecked(true);
+    };
+
     checkMetaMask();
-
-    window.scrollTo(0, 0);
-
-    const fetchedElection = new ElectionDetailsDTO(
-      2,
-      "Vote for your mayor",
-      "The next 4 years will be important for our city! Your vote is very important for our future!",
-      Math.floor(new Date(2022, 3, 13).getTime() / 1000) * 1000,
-      Math.floor(new Date(2022, 3, 19).getTime() / 1000) * 1000,
-      [1, 2, 3]
-    );
-
-    const fetchedCandidates = [
-      new Candidate(1, "John Manner", "I want to make more parks!", 17),
-      new Candidate(
-        2,
-        "Umbert Gothium",
-        "I want to make a new hospital and a new mall for my lovely citizens!",
-        24
-      ),
-      new Candidate(3, "Cassandra Biggiy", "I want to build an airport!", 58),
-    ];
-
-    let totalVotes = 0;
-    fetchedCandidates.forEach(
-      (candidate) => (totalVotes = totalVotes + candidate.numberVotes)
-    );
-
-    const election = new ElectionDetailsAdmin(
-      fetchedElection.id,
-      fetchedElection.title,
-      fetchedElection.description,
-      fetchedElection.dateStart,
-      fetchedElection.dateEnd,
-      computeElectionStatus(fetchedElection.dateStart, fetchedElection.dateEnd)
-    );
-
-    stateDispatch({
-      type: ACTIONS.INIT,
-      payload: {
-        fetchedElection: election,
-        fetchedCandidates: fetchedCandidates,
-        totalVotes: totalVotes,
-      },
-    });
   }, []);
 
-  if (!state.election) {
-    return <div>Loading...</div>;
+  useEffect(() => {
+    if (!isMetaMaskChecked) {
+      return;
+    }
+
+    const fetchElection = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
+
+      let fetchedElection;
+      try {
+        fetchedElection = await contract.getElectionByID(electionID);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch {
+        navigateTo("/404");
+        return;
+      }
+
+      const fetchedStartDate =
+        new Date(fetchedElection["startDate"].toNumber()) * 1000;
+      const fetchedEndDate =
+        new Date(fetchedElection["endDate"].toNumber()) * 1000;
+      const election = new ElectionDetailsAdmin(
+        fetchedElection["id"].toNumber(),
+        fetchedElection["title"],
+        fetchedElection["description"],
+        fetchedStartDate,
+        fetchedEndDate,
+        computeElectionStatus(fetchedStartDate, fetchedEndDate)
+      );
+
+      stateDispatch({
+        type: ACTIONS.SET_ELECTION,
+        payload: election,
+      });
+
+      setIsElectionLoaded(true);
+    };
+
+    fetchElection();
+  }, [isMetaMaskChecked]);
+
+  useEffect(() => {
+    if (!isElectionLoaded) {
+      return;
+    }
+    const fetchCandidates = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
+
+      let fetchedCandidates;
+      try {
+        fetchedCandidates = await contract.getCandidatesByElectionID(
+          electionID
+        );
+      } catch {
+        navigateTo("/404");
+        return;
+      }
+
+      const candidates = fetchedCandidates.map((candidate) => {
+        return new Candidate(
+          candidate["id"].toNumber(),
+          candidate["name"],
+          candidate["description"],
+          candidate["numberVotes"].toNumber()
+        );
+      });
+
+      let totalVotes = 0;
+      candidates.forEach(
+        (candidate) => (totalVotes = totalVotes + candidate.numberVotes)
+      );
+
+      stateDispatch({
+        type: ACTIONS.SET_CANDIDATES_TOTAL_VOTES,
+        payload: {
+          candidates: candidates,
+          totalVotes: totalVotes,
+        },
+      });
+
+      setIsLoading(false);
+    };
+
+    fetchCandidates();
+  }, [isElectionLoaded]);
+
+  const clearRegisterVoter = () => {
+    setVoterAddressToRegister("");
+  };
+
+  const requestRegisterVoter = async () => {
+    setIsLoadingConfirmation(true);
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(contractAddress, Vote.abi, signer);
+
+    try {
+      const transaction = await contract.registerVoter(
+        voterAddressToRegister,
+        electionID
+      );
+      await transaction.wait();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch (e) {
+      if (e.hasOwnProperty("data")) {
+        toast.error(e.data.message.split(" ").slice(6).join(" "), {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      } else {
+        toast.error("Error processing data", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+
+      setIsLoadingConfirmation(false);
+      return;
+    }
+
+    toast.success("Voter registered successfully!", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+
+    clearRegisterVoter();
+
+    setIsLoadingConfirmation(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+          gap: "3%",
+        }}
+      >
+        <ClimbingBoxLoader
+          color={"#00458b"}
+          loading={isLoading}
+          size={25}
+        ></ClimbingBoxLoader>
+      </div>
+    );
+  }
+
+  if (isLoadingConfirmation) {
+    return (
+      <div>
+        <div
+          style={{
+            height: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            gap: "3%",
+          }}
+        >
+          <ClimbingBoxLoader
+            color={"#00458b"}
+            loading={isLoadingConfirmation}
+            size={25}
+          ></ClimbingBoxLoader>
+          <div className="default-text size-smaller color3">
+            Please confirm your request in the pop-up window.
+          </div>
+        </div>
+      </div>
+    );
   }
 
   let electionStatusButton;
@@ -215,7 +365,7 @@ export default function AdminElectionDetails() {
             buttonSize={"btn-size-large"}
             onClick={() => {
               if (!voterAddressToRegisterError) {
-                console.log("register voter");
+                requestRegisterVoter();
               }
             }}
           >
@@ -229,8 +379,13 @@ export default function AdminElectionDetails() {
   return (
     <div className="all-page-wrapper">
       <div className="header">
-        <div>
-          <img className="logo-size" src={logo} alt="logo"></img>
+        <div className="cursor-pointer">
+          <img
+            className="logo-size"
+            src={logo}
+            alt="logo"
+            onClick={() => navigateTo("/admin")}
+          ></img>
         </div>
 
         <div className="default-text size-smaller color3">

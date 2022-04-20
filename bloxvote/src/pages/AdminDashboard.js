@@ -210,16 +210,7 @@ export default function AdminDashboard() {
         fetchedElections = await contract.getElections();
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch {
-        toast.error("Error fetching data. Please reload.", {
-          position: "bottom-right",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-        console.log("Error fetching elections");
+        navigateTo("/404");
         return;
       }
 

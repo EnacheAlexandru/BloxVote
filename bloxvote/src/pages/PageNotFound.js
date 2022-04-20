@@ -7,45 +7,50 @@ export default function PageNotFound() {
   const { user, setUser } = useContext(UserContext);
   const navigateTo = useNavigate();
 
-  const checkMetaMask = async () => {
-    if (typeof window.ethereum === "undefined") {
-      navigateTo("/nomask");
-    }
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window.ethereum === "undefined") {
+        navigateTo("/nomask");
+      }
 
-    let accounts;
-    try {
-      accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-    } catch (error) {
-      navigateTo("/nomask");
-      return;
-    }
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+      } catch (error) {
+        navigateTo("/nomask");
+        return;
+      }
 
-    if (!accounts || accounts.length === 0) {
-      navigateTo("/nomask");
-      return;
-    }
-    setUser((state) => ({ ...state, address: accounts[0] }));
-
-    window.ethereum.on("accountsChanged", (accounts) => {
       if (!accounts || accounts.length === 0) {
         navigateTo("/nomask");
         return;
       }
       setUser((state) => ({ ...state, address: accounts[0] }));
-    });
-  };
 
-  useEffect(() => {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        if (!accounts || accounts.length === 0) {
+          navigateTo("/nomask");
+          return;
+        }
+        setUser((state) => ({ ...state, address: accounts[0] }));
+      });
+    };
+
     checkMetaMask();
   }, []);
 
   return (
     <div className="all-page-wrapper">
       <div className="header">
-        <div>
-          <img className="logo-size" src={logo} alt="logo"></img>
+        <div className="cursor-pointer">
+          <img
+            className="logo-size"
+            src={logo}
+            alt="logo"
+            onClick={() => navigateTo("/")}
+          ></img>
         </div>
         <div className="default-text size-smaller color3">
           <div style={{ textAlign: "right" }}>Logged in as:</div>

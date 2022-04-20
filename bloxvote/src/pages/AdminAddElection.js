@@ -38,17 +38,7 @@ const filterPassedTime = (time) => {
   return tomorrow.getTime() < selectedDate.getTime();
 };
 
-let currentCandidateID = 11;
-
-// const candidatesToBeAdded = [
-//   new Candidate(1, "John Manner", "I want to make lots of parks!"),
-//   new Candidate(
-//     2,
-//     "Umbert Gothium",
-//     "I want to make a new hospital and a new mall for my lovely citizens!aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaa aaaaaaaaaaaaaaa aaaaaaaaaaa aaaaaaaaa aaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa aaaaaaaaaaaaa"
-//   ),
-//   new Candidate(3, "Cassandra Biggiy", "I want to build an airport!"),
-// ];
+let currentCandidateID = 0;
 
 export default function AdminAddElection() {
   const stateReducer = (state, action) => {
@@ -184,7 +174,6 @@ export default function AdminAddElection() {
         draggable: true,
         progress: undefined,
       });
-      console.log("Error adding election");
       setIsLoadingConfirmation(false);
       return;
     }

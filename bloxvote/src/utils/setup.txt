@@ -74,22 +74,15 @@ const mockFetchedElections = [
     Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
     Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
   ),
-  new ElectionDTO(
-    8,
-    "Vote for your president 8013",
-    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
+];
+
+const fetchedCandidates = [
+  new Candidate(1, "John Manner", "I want to make more parks!", 17),
+  new Candidate(
+    2,
+    "Umbert Gothium",
+    "I want to make a new hospital and a new mall for my lovely citizens!",
+    24
   ),
-  new ElectionDTO(
-    9,
-    "Vote for your president 9013",
-    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-  ),
-  new ElectionDTO(
-    10,
-    "Vote for your president 10013",
-    Math.floor(new Date(2022, 1, 8).getTime() / 1000) * 1000,
-    Math.floor(new Date(2022, 1, 10).getTime() / 1000) * 1000
-  ),
+  new Candidate(3, "Cassandra Biggiy", "I want to build an airport!", 58),
 ];

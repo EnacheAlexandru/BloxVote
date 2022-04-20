@@ -8,44 +8,44 @@ export default function ErrorPage() {
   const { user, setUser } = useContext(UserContext);
   const navigateTo = useNavigate();
 
-  const checkMetaMask = async () => {
-    if (typeof window.ethereum === "undefined") {
-      navigateTo("/nomask");
-      return;
-    }
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window.ethereum === "undefined") {
+        navigateTo("/nomask");
+        return;
+      }
 
-    let accounts;
-    try {
-      accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-    } catch (error) {
-      navigateTo("/nomask");
-      return;
-    }
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+      } catch (error) {
+        navigateTo("/nomask");
+        return;
+      }
 
-    if (!accounts || accounts.length === 0) {
-      navigateTo("/nomask");
-      return;
-    }
-    setUser((state) => ({ ...state, address: accounts[0] }));
+      if (!accounts || accounts.length === 0) {
+        navigateTo("/nomask");
+        return;
+      }
+      setUser((state) => ({ ...state, address: accounts[0] }));
 
-    if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
-      navigateTo("/admin");
-      return;
-    }
-
-    if (window.ethereum.isConnected()) {
       if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
         navigateTo("/admin");
         return;
       }
-      navigateTo("/");
-      return;
-    }
-  };
 
-  useEffect(() => {
+      if (window.ethereum.isConnected()) {
+        if (accounts[0].toLowerCase() === contractAdmin.toLowerCase()) {
+          navigateTo("/admin");
+          return;
+        }
+        navigateTo("/");
+        return;
+      }
+    };
+
     checkMetaMask();
   }, []);
 

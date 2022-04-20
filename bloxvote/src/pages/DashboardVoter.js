@@ -211,7 +211,7 @@ export default function DashboardVoter() {
       try {
         fetchedVotes = await contract.getVoter({ from: user.address });
       } catch {
-        console.log("Error fetching voter");
+        navigateTo("/404");
         return;
       }
 
@@ -242,16 +242,8 @@ export default function DashboardVoter() {
         fetchedElections = await contract.getElections();
         await new Promise((resolve) => setTimeout(resolve, 1000)); // simulate
       } catch {
-        toast.error("Error fetching data. Please reload.", {
-          position: "bottom-right",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
         console.log("Error fetching elections");
+        navigateTo("/404");
         return;
       }
 
