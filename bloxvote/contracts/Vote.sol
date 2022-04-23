@@ -18,8 +18,6 @@ contract Vote {
         _;
     }
 
-    event NewVote(uint256 _candidateID);
-
     struct ElectionToCandidate {
         uint256 electionID;
         uint256 candidateID;
@@ -45,6 +43,8 @@ contract Vote {
         uint256 endDate;
         uint256[] candidatesIDs;
     }
+
+    event NewVote(Candidate candidate);
 
     address private admin;
     Election[] private elections;   // starts from ID 1, i.e. elections[i] has an election with ID i + 1
@@ -81,13 +81,15 @@ contract Vote {
         return candidatesToReturn;
     }
 
-    function addElection(string memory _title, string memory _description, uint256 _startDate, uint256 _endDate, CandidateDTO[] memory _candidatesToAdd) external isAdmin {
+    function addElection(string memory _title, string memory _description, uint256 _startDate, uint256 _endDate, CandidateDTO[] memory _candidatesToAdd, bool _ignoreDatesCheck) external isAdmin {
         require(bytes(_title).length >= 1 && bytes(_title).length <= 75, "Invalid election title");
         require(bytes(_description).length >= 1 && bytes(_description).length <= 300, "Invalid election description");
 
-        //require(_startDate >= block.timestamp + 1 days, "Invalid start date");
-        //require(_endDate >= _startDate + 1 days, "End and start dates should be more than one day apart");
-        
+        if (_ignoreDatesCheck == false) {
+            require(_startDate >= block.timestamp, "Election should not start in the past");
+            require(_endDate >= _startDate + 30 minutes, "Election should lasts at least 30 minutes");
+        }
+
         require(_candidatesToAdd.length >= 2 && _candidatesToAdd.length <= 10, "Invalid number of candidates");
 
         for (uint256 i = 0; i < _candidatesToAdd.length; i++) {
@@ -137,7 +139,8 @@ contract Vote {
             if (voters[msg.sender][i].electionID == _electionID) {
                 if (voters[msg.sender][i].candidateID == 0) {
                     voters[msg.sender][i].candidateID = _candidateID;
-                    emit NewVote(_candidateID);
+                    candidates[_candidateID - 1].numberVotes++;
+                    emit NewVote(candidates[_candidateID - 1]);
                     return;
                 } else {
                     revert("Already voted");

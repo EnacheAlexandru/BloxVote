@@ -25,6 +25,15 @@ import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 const ACTIONS = {
   SET_CANDIDATES_TOTAL_VOTES: "SET_CANDIDATES_TOTAL_VOTES",
   SET_ELECTION: "SET_ELECTION",
+  NEW_VOTE: "NEW_VOTE",
+};
+
+const computeTotalVotes = (candidates) => {
+  let totalVotes = 0;
+  candidates.forEach(
+    (candidate) => (totalVotes = totalVotes + candidate.numberVotes)
+  );
+  return totalVotes;
 };
 
 export default function AdminElectionDetails() {
@@ -41,6 +50,20 @@ export default function AdminElectionDetails() {
           ...state,
           election: action.payload,
         };
+      case ACTIONS.NEW_VOTE: {
+        const updatedCandidates = state.candidates.map((candidate) => {
+          if (action.payload.id == candidate.id) {
+            return { ...action.payload };
+          }
+          return { ...candidate };
+        });
+        const updatedTotalVotes = computeTotalVotes(updatedCandidates);
+        return {
+          ...state,
+          candidates: updatedCandidates,
+          totalVotes: updatedTotalVotes,
+        };
+      }
     }
   };
 
@@ -54,6 +77,7 @@ export default function AdminElectionDetails() {
 
   const [isMetaMaskChecked, setIsMetaMaskChecked] = useState(false);
   const [isElectionLoaded, setIsElectionLoaded] = useState(false);
+  const [areCandidatesLoaded, setAreCandidatesLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingConfirmation, setIsLoadingConfirmation] = useState(false);
 
@@ -147,6 +171,7 @@ export default function AdminElectionDetails() {
     if (!isElectionLoaded) {
       return;
     }
+
     const fetchCandidates = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
@@ -170,10 +195,7 @@ export default function AdminElectionDetails() {
         );
       });
 
-      let totalVotes = 0;
-      candidates.forEach(
-        (candidate) => (totalVotes = totalVotes + candidate.numberVotes)
-      );
+      const totalVotes = computeTotalVotes(candidates);
 
       stateDispatch({
         type: ACTIONS.SET_CANDIDATES_TOTAL_VOTES,
@@ -183,11 +205,39 @@ export default function AdminElectionDetails() {
         },
       });
 
-      setIsLoading(false);
+      setAreCandidatesLoaded(true);
     };
 
     fetchCandidates();
   }, [isElectionLoaded]);
+
+  useEffect(() => {
+    if (!areCandidatesLoaded) {
+      return;
+    }
+
+    const createVoteListener = () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(contractAddress, Vote.abi, provider);
+
+      contract.on("NewVote", (candidate) => {
+        const updatedCandidate = new Candidate(
+          candidate["id"].toNumber(),
+          candidate["name"],
+          candidate["description"],
+          candidate["numberVotes"].toNumber()
+        );
+        stateDispatch({
+          type: ACTIONS.NEW_VOTE,
+          payload: updatedCandidate,
+        });
+      });
+
+      setIsLoading(false);
+    };
+
+    createVoteListener();
+  }, [areCandidatesLoaded]);
 
   const clearRegisterVoter = () => {
     setVoterAddressToRegister("");

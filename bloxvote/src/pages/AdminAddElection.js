@@ -25,19 +25,6 @@ const ACTIONS = {
   CLEAR_CANDIDATES: "CLEAR_CANDIDATES",
 };
 
-const today = new Date();
-
-let tomorrow = new Date();
-tomorrow.setDate(today.getDate() + 1);
-
-const filterPassedTime = (time) => {
-  let tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
-  const selectedDate = new Date(time);
-
-  return tomorrow.getTime() < selectedDate.getTime();
-};
-
 let currentCandidateID = 0;
 
 export default function AdminAddElection() {
@@ -160,7 +147,8 @@ export default function AdminAddElection() {
         descriptionElection,
         dateStartToBeSent,
         dateEndToBeSent,
-        candidatesToBeSent
+        candidatesToBeSent,
+        false
       );
       await transaction.wait();
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -225,11 +213,23 @@ export default function AdminAddElection() {
   if (
     startDateElection &&
     endDateElection &&
-    Math.round((endDateElection - startDateElection) / (1000 * 60)) < 60 * 24
+    Math.round((endDateElection - startDateElection) / (1000 * 60)) < 30
   ) {
     startAndEndDatesTooCloseError = (
       <span className="default-text size-smaller red">
-        End date should be at least one day after start date
+        Election should lasts at least 30 minutes
+      </span>
+    );
+  }
+
+  let startDateInThePastError;
+  if (
+    startDateElection &&
+    Math.round((startDateElection - new Date()) / (1000 * 60)) < 0
+  ) {
+    startDateInThePastError = (
+      <span className="default-text size-smaller red">
+        Election should not start in the past
       </span>
     );
   }
@@ -362,6 +362,7 @@ export default function AdminAddElection() {
           <input
             type="text"
             className="custom-text-field"
+            value={titleElection}
             maxLength="75"
             onChange={(event) => {
               setTitleElection(event.target.value);
@@ -376,6 +377,7 @@ export default function AdminAddElection() {
         <div>
           <textarea
             className="custom-textarea"
+            value={descriptionElection}
             maxLength="300"
             rows="4"
             onChange={(event) => {
@@ -399,8 +401,8 @@ export default function AdminAddElection() {
                     setStartDateElection(date);
                   }}
                   selected={startDateElection}
-                  minDate={tomorrow}
-                  filterTime={filterPassedTime}
+                  minDate={new Date()}
+                  timeIntervals={15}
                   dateFormat="dd/MM/yyyy HH:mm"
                   timeFormat="HH:mm"
                 ></DatePicker>
@@ -409,7 +411,10 @@ export default function AdminAddElection() {
                 <MdDateRange size={30}></MdDateRange>
               </div>
             </div>
-            {startDateElectionError}
+            <div>
+              {startDateElectionError}
+              {startDateInThePastError}
+            </div>
           </div>
 
           <div>
@@ -423,8 +428,8 @@ export default function AdminAddElection() {
                     setEndDateElection(date);
                   }}
                   selected={endDateElection}
-                  minDate={tomorrow}
-                  filterTime={filterPassedTime}
+                  minDate={new Date()}
+                  timeIntervals={15}
                   dateFormat="dd/MM/yyyy HH:mm"
                   timeFormat="HH:mm"
                 ></DatePicker>
@@ -433,12 +438,12 @@ export default function AdminAddElection() {
                 <MdDateRange size={30}></MdDateRange>
               </div>
             </div>
-
-            {endDateElectionError}
+            <div>
+              {endDateElectionError}
+              {startAndEndDatesTooCloseError}
+            </div>
           </div>
         </div>
-
-        {startAndEndDatesTooCloseError}
 
         <div style={{ marginBottom: "40px" }}></div>
 

@@ -5,14 +5,17 @@ truffle console
 
 truffle test ./test/VoteTest.js
 
+accounts = await web3.eth.getAccounts()
 vote = await Vote.deployed()
 await vote.addElection("Vote for your mayor", "The next 4 years will be important for our city! Your vote is very important for our future!", 1649970000, 1650103200, [["John Manner", "I want to make more parks!"], ["Umbert Gothium", "I want to make a new hospital and a new mall for my lovely citizens!"], ["Cassandra Biggiy", "I want to build an airport!"]])
 
 await vote.addElection("aa", "bb", 1649970000, 1650142800, [["gg", "wp"], ["gl", "hf"]])
 await vote.addElection("cc", "dd", 1549970000, 1550142800, [["omg", "wtf"], ["fyi", "omfg"]])
-await vote.addElection("ee", "ff", 1749970000, 1750142800, [["alpha", "beta"], ["omega", "epsilon"]])
+await vote.addElection("ee", "ff", 1649955600, 1658341800, [["alpha", "beta"], ["omega", "epsilon"]], true)
+await vote.addElection("gg", "hh", 1649538000, 1653426000, [["tiger", "leopard"], ["lion", "puma"]])
 
-await vote.registerVoter("0x60948741C82EB9680c35ec91A2140483B818dD07", 1)
+await vote.registerVoter(accounts[9], 4)
+await vote.vote(4, 7, {from: accounts[9]})
 
 [
   [

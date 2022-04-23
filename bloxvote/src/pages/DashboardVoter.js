@@ -242,7 +242,6 @@ export default function DashboardVoter() {
         fetchedElections = await contract.getElections();
         await new Promise((resolve) => setTimeout(resolve, 1000)); // simulate
       } catch {
-        console.log("Error fetching elections");
         navigateTo("/404");
         return;
       }
