@@ -4,6 +4,7 @@ truffle migrate --reset
 truffle console
 
 truffle test ./test/VoteTest.js
+truffle exec ./test/TimeTest.js
 
 accounts = await web3.eth.getAccounts()
 vote = await Vote.deployed()
